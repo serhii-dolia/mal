@@ -1,10 +1,14 @@
 import { ERROR, LIST, MalType, NUMBER, SYMBOL } from "./types.js";
 
-export const pr_str = (_: MalType) => {
+export type PrintableValue = string | number | MalType;
+export const pr_str = (_: PrintableValue) => {
   console.log(toString(_));
 };
 
-const toString = (_: MalType): string => {
+const toString = (_: PrintableValue): string => {
+  if (typeof _ === "string" || typeof _ === "number") {
+    return _.toString();
+  }
   switch (_.type) {
     case NUMBER:
     case SYMBOL:
