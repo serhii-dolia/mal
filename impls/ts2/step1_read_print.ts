@@ -22,5 +22,10 @@ const PRINT = (_: MalType) => {
 const rep = async () => PRINT(EVAL(await READ()));
 
 while (true) {
-  await rep();
+  try {
+    await rep();
+  } catch (e: any) {
+    console.log(e.message);
+    await rep();
+  }
 }
