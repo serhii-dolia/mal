@@ -1,4 +1,4 @@
-STEPS = step0_repl
+STEPS = step0_repl step1_read_print
 
 all: ts
 
@@ -14,4 +14,4 @@ step%.js: node_modules step%.ts
 ts: $(foreach s,$(STEPS),$(s).js)
 
 clean:
-	rm -f *.js
+	rm -f *.js *.js.map
