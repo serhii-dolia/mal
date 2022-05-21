@@ -19,8 +19,8 @@ const PRINT = (_: MalType) => {
   pr_str(_);
 };
 
-const rep = (input: string) => console.log(input);
+const rep = async () => PRINT(EVAL(await READ()));
 
 while (true) {
-  PRINT(EVAL(await READ()));
+  await rep();
 }
