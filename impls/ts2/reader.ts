@@ -1,6 +1,5 @@
 import {
   MalAtom,
-  malError,
   malList,
   MalList,
   malNumber,
@@ -64,9 +63,7 @@ const read_list = (_: Reader): MalList => {
   while (currentValue.value !== ")") {
     currentSymbol = _.next();
     if (currentSymbol === EOF) {
-      currentValue = malError(EOF);
-      values.push(currentValue);
-      break;
+      throw new Error(EOF);
     }
     currentValue = read_form(_);
     if (currentValue.value === ")") {

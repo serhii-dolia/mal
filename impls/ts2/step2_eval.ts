@@ -1,7 +1,7 @@
 //@ts-ignore
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
-import { PrintableValue, pr_str } from "./printer.js";
+import { pr_str } from "./printer.js";
 import { read_str } from "./reader.js";
 import {
   evaluatableList,
@@ -37,20 +37,17 @@ const EVAL = (ast: MalType, replEnv: MalEnv) => {
   }
 };
 
-const PRINT = (_: number | MalList | "EOF") => {
+const PRINT = (_: number | MalList) => {
   pr_str(_);
 };
 
 function eval_ast(ast: MalList, replEnv: MalEnv): EvaluatableList;
 function eval_ast(ast: MalSymbol, replEnv: MalEnv): () => {};
-function eval_ast(
-  ast: Exclude<MalType, MalList>,
-  replEnv: MalEnv
-): number | "EOF";
+function eval_ast(ast: Exclude<MalType, MalList>, replEnv: MalEnv): number;
 function eval_ast(
   ast: MalType,
   replEnv: MalEnv
-): EvaluatableList | (() => {}) | number | "EOF" {
+): EvaluatableList | (() => {}) | number {
   switch (ast.type) {
     case SYMBOL: {
       if (replEnv[ast.value]) {
@@ -92,5 +89,10 @@ const REPL_ENV: MalEnv = {
 const rep = async () => PRINT(EVAL(await READ(), REPL_ENV));
 
 while (true) {
-  await rep();
+  try {
+    await rep();
+  } catch (e: any) {
+    console.log(e.message);
+    await rep();
+  }
 }

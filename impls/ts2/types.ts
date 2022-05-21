@@ -1,20 +1,11 @@
 export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
-export const ERROR: unique symbol = Symbol("error");
+export const STRING: unique symbol = Symbol("string");
 export const EVALUATABLE_LIST: unique symbol = Symbol("evaluatable list");
 
 export type MalAtom = MalNumber | MalSymbol;
-export type MalType = MalAtom | MalList | MalError;
-export type MalError = {
-  type: typeof ERROR;
-  value: "EOF";
-};
-
-export const malError = (value: MalError["value"]): MalError => ({
-  type: ERROR,
-  value,
-});
+export type MalType = MalAtom | MalList;
 
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
