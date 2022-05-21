@@ -1,8 +1,8 @@
 export const NUMBER: unique symbol = Symbol("number");
-export const STRING: unique symbol = Symbol("string");
+export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
 export const ERROR: unique symbol = Symbol("error");
-export type MalAtom = MalNumber | MalString;
+export type MalAtom = MalNumber | MalSymbol;
 export type MalType = MalAtom | MalList | MalError;
 export type MalError = {
   type: typeof ERROR;
@@ -14,8 +14,8 @@ export const malError = (value: MalError["value"]): MalError => ({
   value,
 });
 
-export const malString = (value: MalString["value"]): MalString => ({
-  type: STRING,
+export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
+  type: SYMBOL,
   value,
 });
 
@@ -33,8 +33,8 @@ export type MalNumber = {
   value: number;
 };
 
-export type MalString = {
-  type: typeof STRING;
+export type MalSymbol = {
+  type: typeof SYMBOL;
   value: string;
 };
 

@@ -4,7 +4,7 @@ import {
   malList,
   MalList,
   malNumber,
-  malString,
+  malSymbol,
   MalType,
 } from "./types.js";
 
@@ -82,7 +82,7 @@ const read_atom = (_: Reader): MalAtom => determine_atom(_.peek());
 const determine_atom = (_: string): MalAtom => {
   const number = parseInt(_);
   if (Number.isNaN(number)) {
-    return malString(_);
+    return malSymbol(_);
   } else {
     return malNumber(number);
   }
