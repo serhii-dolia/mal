@@ -4,15 +4,16 @@ import { stdin as input, stdout as output } from "node:process";
 import { pr_str } from "./printer.js";
 import { read_str } from "./reader.js";
 import {
-  evaluatableList,
-  EvaluatableList,
+  // evaluatableList,
+  // EvaluatableList,
   LIST,
   MalList,
-  malList,
+  // malList,
   MalSymbol,
   MalType,
   SYMBOL,
 } from "./types.js";
+import { Env } from "./env.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -27,9 +28,7 @@ const EVAL = (ast: MalType, replEnv: MalEnv) => {
         return ast;
       } else {
         const evaluatedList = eval_ast(ast, replEnv);
-        return evaluatedList.value[0](
-          ...(evaluatedList.value.slice(1) as number[])
-        );
+        return evaluatedList[0](...(evaluatedList.slice(1) as number[]));
       }
     }
     default:
@@ -41,13 +40,19 @@ const PRINT = (_: number | MalList) => {
   pr_str(_);
 };
 
-function eval_ast(ast: MalList, replEnv: MalEnv): EvaluatableList;
-function eval_ast(ast: MalSymbol, replEnv: MalEnv): () => {};
+function eval_ast(
+  ast: MalList,
+  replEnv: MalEnv
+): [(...args: number[]) => number, ...number[]];
+
 function eval_ast(ast: Exclude<MalType, MalList>, replEnv: MalEnv): number;
 function eval_ast(
   ast: MalType,
   replEnv: MalEnv
-): EvaluatableList | (() => {}) | number {
+):
+  | [(...args: number[]) => number, ...number[]]
+  | number
+  | ((...args: number[]) => number) {
   switch (ast.type) {
     case SYMBOL: {
       if (replEnv[ast.value]) {
@@ -57,14 +62,14 @@ function eval_ast(
       }
     }
     case LIST: {
-      return evaluatableList(ast.value.map((v) => EVAL(v, replEnv)) as any);
+      return ast.value.map((v) => EVAL(v, replEnv)) as any;
     }
     default:
       return ast.value;
   }
 }
 
-type MalEnv = { [key: string]: (...args: any[]) => {} };
+type MalEnv = { [key: string]: (...args: any[]) => any };
 const REPL_ENV: MalEnv = {
   "+": (...args: number[]) => args.reduce((acc, curr) => acc + curr, 0),
   "-": (...args: number[]) =>

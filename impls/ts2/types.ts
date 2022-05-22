@@ -21,28 +21,31 @@ export const malList = (value: MalType[]): MalList => ({
   type: LIST,
   value,
 });
-export const evaluatableList = (
-  value: EvaluatableList["value"]
-): EvaluatableList => ({
-  type: EVALUATABLE_LIST,
-  value,
-});
+// export const evaluatableList = (
+//   value: EvaluatableList["value"]
+// ): EvaluatableList => ({
+//   type: EVALUATABLE_LIST,
+//   value,
+// });
 export type MalNumber = {
   type: typeof NUMBER;
   value: number;
 };
 
-export type MalSymbol = {
+export type MalSymbol<S = string> = {
   type: typeof SYMBOL;
-  value: string;
+  value: S;
 };
 
 export type MalList = {
   type: typeof LIST;
-  value: MalType[];
+  value:
+    | MalType[]
+    | [MalSymbol<"def!">, string, number]
+    | [MalSymbol<"let*">, ...any[]];
 };
 
-export type EvaluatableList = {
-  type: typeof EVALUATABLE_LIST;
-  value: [(...args: number[]) => number, ...number[]];
-};
+// export type EvaluatableList = {
+//   type: typeof EVALUATABLE_LIST;
+//   value: [(...args: number[]) => number, ...number[]];
+// };

@@ -1,7 +1,10 @@
 import { LIST, MalType, NUMBER, SYMBOL } from "./types.js";
 
 export type PrintableValue = string | number | MalType;
-export const pr_str = (_: PrintableValue) => {
+export const pr_str = (_: PrintableValue | null) => {
+  if (_ === null) {
+    return;
+  }
   console.log(toString(_));
 };
 
