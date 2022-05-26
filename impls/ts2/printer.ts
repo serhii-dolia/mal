@@ -1,22 +1,22 @@
-import { LIST, MalType, NUMBER, SYMBOL } from "./types.js";
+import { FUNCTION, LIST, MalType, NIL, NUMBER, SYMBOL } from "./types.js";
 
-export type PrintableValue = string | number | MalType;
-export const pr_str = (_: PrintableValue | null) => {
+export const pr_str = (_: MalType) => {
   if (_ === null) {
     return;
   }
   console.log(toString(_));
 };
 
-const toString = (_: PrintableValue): string => {
-  if (typeof _ === "string" || typeof _ === "number") {
-    return _.toString();
-  }
+const toString = (_: MalType): string => {
   switch (_.type) {
     case NUMBER:
     case SYMBOL:
       return _.value.toString();
+    case NIL:
+      return "nil";
     case LIST:
       return `(${_.value.map(toString).join(" ")})`;
+    case FUNCTION:
+      return _.value.toString();
   }
 };

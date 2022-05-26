@@ -1,7 +1,7 @@
 export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
-export const STRING: unique symbol = Symbol("string");
+//export const STRING: unique symbol = Symbol("string");
 export const FUNCTION: unique symbol = Symbol("function");
 export const NIL: unique symbol = Symbol("nil");
 
@@ -18,12 +18,12 @@ export const malNumber = (value: MalNumber["value"]): MalNumber => ({
   value,
 });
 
-export const malList = (value: MalType[]): MalList => ({
+export const malList = (value: MalList["value"]): MalList => ({
   type: LIST,
   value,
 });
 
-export const malFunction = (value: MalFunctionPrimitive): MalFunction => ({
+export const malFunction = (value: MalFunction["value"]): MalFunction => ({
   type: FUNCTION,
   value,
 });
@@ -45,13 +45,20 @@ export type MalSymbol<S = string> = {
 
 export type MalList = {
   type: typeof LIST;
-  value:
-    | MalType[]
-    | [MalSymbol<"def!">, MalSymbol, MalNumber]
-    | [MalSymbol<"let*">, ...MalType[]];
+  value: DefList | LetList | MalType[];
 };
 
-interface MalFunction {
+export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalNumber];
+export type LetList = [MalSymbol<typeof LET>, ...MalType[]];
+
+export const DEF = "def!" as const;
+export const LET = "let*" as const;
+
+export type SPECIAL_SYMBOL = typeof DEF | typeof LET;
+
+export const SPECIAL_SYMBOLS = [DEF, LET] as const;
+
+export interface MalFunction {
   type: typeof FUNCTION;
   value: MalFunctionPrimitive;
 }

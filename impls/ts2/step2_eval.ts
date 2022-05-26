@@ -4,10 +4,18 @@ import { stdin as input, stdout as output } from "node:process";
 import { pr_str } from "./printer.js";
 import { read_str } from "./reader.js";
 import {
+  FUNCTION,
   // evaluatableList,
   // EvaluatableList,
   LIST,
+  MalAtom,
+  MalFunction,
+  malFunction,
+  MalFunctionPrimitive,
+  malList,
   MalList,
+  malNumber,
+  MalNumber,
   // malList,
   MalSymbol,
   MalType,
@@ -28,31 +36,25 @@ const EVAL = (ast: MalType, replEnv: MalEnv) => {
         return ast;
       } else {
         const evaluatedList = eval_ast(ast, replEnv);
-        return evaluatedList[0](...(evaluatedList.slice(1) as number[]));
+        const method = evaluatedList.value[0];
+        if (method.type === FUNCTION) {
+          return method.value(...evaluatedList.value.slice(1));
+        } else {
+          return evaluatedList;
+        }
       }
     }
     default:
-      return eval_ast(ast, replEnv);
+      return eval_ast(ast as any, replEnv);
   }
 };
 
-const PRINT = (_: number | MalList) => {
+const PRINT = (_: MalType) => {
   pr_str(_);
 };
 
-function eval_ast(
-  ast: MalList,
-  replEnv: MalEnv
-): [(...args: number[]) => number, ...number[]];
-
-function eval_ast(ast: Exclude<MalType, MalList>, replEnv: MalEnv): number;
-function eval_ast(
-  ast: MalType,
-  replEnv: MalEnv
-):
-  | [(...args: number[]) => number, ...number[]]
-  | number
-  | ((...args: number[]) => number) {
+function eval_ast(ast: MalList, replEnv: MalEnv): MalList;
+function eval_ast(ast: MalType, replEnv: MalEnv): MalType {
   switch (ast.type) {
     case SYMBOL: {
       if (replEnv[ast.value]) {
@@ -62,33 +64,41 @@ function eval_ast(
       }
     }
     case LIST: {
-      return ast.value.map((v) => EVAL(v, replEnv)) as any;
+      return malList(ast.value.map((v) => EVAL(v, replEnv)));
     }
     default:
-      return ast.value;
+      return ast;
   }
 }
 
-type MalEnv = { [key: string]: (...args: any[]) => any };
+type MalEnv = { [key: string]: MalType };
 const REPL_ENV: MalEnv = {
-  "+": (...args: number[]) => args.reduce((acc, curr) => acc + curr, 0),
-  "-": (...args: number[]) =>
+  "+": malFunction(((...args: MalNumber[]) =>
+    args.reduce(
+      (acc, curr) => malNumber(acc.value + curr.value),
+      malNumber(0)
+    )) as MalFunctionPrimitive),
+  "-": malFunction(((...args: MalNumber[]) =>
     args.reduce((acc, curr, i) => {
       if (i === 0) {
         return curr;
       } else {
-        return acc - curr;
+        return malNumber(acc.value - curr.value);
       }
-    }, 0),
-  "*": (...args: number[]) => args.reduce((acc, curr) => acc * curr, 1),
-  "/": (...args: number[]) =>
+    }, malNumber(0))) as MalFunctionPrimitive),
+  "*": malFunction(((...args: MalNumber[]) =>
+    args.reduce(
+      (acc, curr) => malNumber(acc.value * curr.value),
+      malNumber(1)
+    )) as MalFunctionPrimitive),
+  "/": malFunction(((...args: MalNumber[]) =>
     args.reduce((acc, curr, i) => {
       if (i === 0) {
         return curr;
       } else {
-        return acc / curr;
+        return malNumber(acc.value / curr.value);
       }
-    }, 0),
+    }, malNumber(0))) as MalFunctionPrimitive),
 };
 
 const rep = async () => PRINT(EVAL(await READ(), REPL_ENV));
