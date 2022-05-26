@@ -8,8 +8,11 @@ import {
   DefList,
   DO,
   DoList,
+  FALSE,
   FUNCTION,
   HASHMAP,
+  IF,
+  IfList,
   LET,
   //   evaluatableList,
   //   EvaluatableList,
@@ -23,12 +26,14 @@ import {
   MalKeyword,
   MalList,
   malList,
+  malNil,
   MalNumber,
   malNumber,
   MalSymbol,
   MalType,
   malVector,
   MalVector,
+  NIL,
   SYMBOL,
   VECTOR,
 } from "./types.js";
@@ -93,6 +98,19 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
               doListValues.slice(1).map<MalType>((el) => eval_ast(el, replEnv))
             );
             return evaluatedList.value[evaluatedList.value.length - 1];
+          }
+          case IF: {
+            const ifListValues = ast.value as unknown as IfList;
+            const evaluatedCondition = eval_ast(ifListValues[1], replEnv);
+            if (![NIL, FALSE].includes(evaluatedCondition.type)) {
+              return eval_ast(ifListValues[2], replEnv);
+            } else {
+              if (ifListValues[3]) {
+                return eval_ast(ifListValues[3], replEnv);
+              } else {
+                return malNil();
+              }
+            }
           }
           default:
             // check if the type is number

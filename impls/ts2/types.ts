@@ -106,7 +106,9 @@ export type HashMapPair = [MalKeyword | MalString, MalType];
 export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalNumber];
 export type LetList = [MalSymbol<typeof LET>, MalList, MalType];
 export type DoList = [MalSymbol<typeof DO>, MalList];
-export type IfList = [MalSymbol<typeof IF>, MalType, MalType, MalType];
+export type IfList =
+  | [MalSymbol<typeof IF>, MalType, MalType, MalType]
+  | [MalSymbol<typeof IF>, MalType, MalType];
 export type FnList = [MalSymbol<typeof FN>, MalList, MalType];
 
 export const DEF = "def!" as const;
