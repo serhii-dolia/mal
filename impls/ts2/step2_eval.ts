@@ -5,6 +5,7 @@ import { pr_str } from "./printer.js";
 import { read_str } from "./reader.js";
 import {
   FUNCTION,
+  HASHMAP,
   // evaluatableList,
   // EvaluatableList,
   LIST,
@@ -12,6 +13,7 @@ import {
   MalFunction,
   malFunction,
   MalFunctionPrimitive,
+  malHashMap,
   malList,
   MalList,
   malNumber,
@@ -79,6 +81,11 @@ function eval_ast(ast: MalType, replEnv: MalEnv): MalType {
     }
     case VECTOR: {
       return malVector(ast.value.map((v) => EVAL(v, replEnv)));
+    }
+    case HASHMAP: {
+      return malHashMap(
+        ast.value.map(([key, value]) => [key, EVAL(value, replEnv)])
+      );
     }
     default:
       return ast;
