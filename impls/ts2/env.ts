@@ -1,10 +1,19 @@
-import { MalType } from "./types";
+import { MalSymbol, MalType } from "./types";
 
 export class Env {
-  private data: { [key: string]: MalType };
+  private data: { [key: string]: MalType } = {};
 
-  constructor(private outer: Env | null) {
-    this.data = {};
+  constructor(
+    private outer: Env | null,
+    binds: MalSymbol[] = [],
+    exprs: MalType[] = []
+  ) {
+    if (binds.length !== exprs.length) {
+      throw new Error("binds and expressions should be same length");
+    }
+    for (let i = 0; i < binds.length; i++) {
+      this.data[binds[i].value] = exprs[i];
+    }
   }
 
   set(symbol: string, value: MalType) {
