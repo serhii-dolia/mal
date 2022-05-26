@@ -16,16 +16,18 @@ const EVAL = (_: MalType) => {
 };
 
 const PRINT = (_: MalType) => {
-  pr_str(_);
+  pr_str(_, true);
 };
 
-const rep = async () => PRINT(EVAL(await READ()));
-
-while (true) {
-  try {
-    await rep();
-  } catch (e: any) {
-    console.log(e.message);
-    await rep();
+const rep = async () => {
+  while (true) {
+    try {
+      PRINT(EVAL(await READ()));
+    } catch (e: any) {
+      console.log(e.message);
+      await rep();
+    }
   }
-}
+};
+
+rep();

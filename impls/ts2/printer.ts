@@ -1,22 +1,42 @@
-import { FUNCTION, LIST, MalType, NIL, NUMBER, SYMBOL } from "./types.js";
+import {
+  FALSE,
+  FUNCTION,
+  LIST,
+  MalString,
+  MalType,
+  NIL,
+  NUMBER,
+  STRING,
+  SYMBOL,
+  TRUE,
+} from "./types.js";
 
-export const pr_str = (_: MalType) => {
-  if (_ === null) {
-    return;
-  }
-  console.log(toString(_));
+export const pr_str = (_: MalType, print_readably: boolean) => {
+  console.log(toString(_, print_readably));
 };
 
-const toString = (_: MalType): string => {
+const toString = (_: MalType, print_readably: boolean): string => {
   switch (_.type) {
     case NUMBER:
     case SYMBOL:
+    case TRUE:
+    case FALSE:
       return _.value.toString();
+    case STRING:
+      if (!print_readably) {
+        return `"${_.value}"`;
+      } else {
+        return readable_string(_);
+      }
     case NIL:
       return "nil";
     case LIST:
-      return `(${_.value.map(toString).join(" ")})`;
+      return `(${_.value.map((x) => toString(x, print_readably)).join(" ")})`;
     case FUNCTION:
       return _.value.toString();
   }
+};
+
+const readable_string = (_: MalString): string => {
+  return `"${_.value.replaceAll(`\"`, `"`)}"`;
 };

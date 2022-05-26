@@ -64,7 +64,7 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
 };
 
 const PRINT = (_: MalType) => {
-  pr_str(_);
+  pr_str(_, true);
 };
 
 function eval_ast(ast: MalList, replEnv: Env): MalList;
@@ -127,13 +127,15 @@ REPL_ENV.set(
     }, malNumber(0))) as MalFunctionPrimitive)
 );
 
-const rep = async () => PRINT(EVAL(await READ(), REPL_ENV));
-
-while (true) {
-  try {
-    await rep();
-  } catch (e: any) {
-    console.log(e.message);
-    await rep();
+const rep = async () => {
+  while (true) {
+    try {
+      PRINT(EVAL(await READ(), REPL_ENV));
+    } catch (e: any) {
+      console.log(e.message);
+      await rep();
+    }
   }
-}
+};
+
+rep();

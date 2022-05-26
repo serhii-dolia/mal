@@ -3,6 +3,7 @@ import {
   malList,
   MalList,
   malNumber,
+  malString,
   malSymbol,
   MalType,
 } from "./types.js";
@@ -77,6 +78,13 @@ const read_list = (_: Reader): MalList => {
 const read_atom = (_: Reader): MalAtom => determine_atom(_.peek());
 
 const determine_atom = (_: string): MalAtom => {
+  if (_.startsWith('"')) {
+    if (_.endsWith(`"`)) {
+      return malString(_.slice(1, -1));
+    } else {
+      throw new Error("EOF");
+    }
+  }
   const number = parseInt(_);
   if (Number.isNaN(number)) {
     return malSymbol(_);

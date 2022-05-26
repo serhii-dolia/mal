@@ -1,11 +1,19 @@
 export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
-//export const STRING: unique symbol = Symbol("string");
+export const STRING: unique symbol = Symbol("string");
 export const FUNCTION: unique symbol = Symbol("function");
 export const NIL: unique symbol = Symbol("nil");
+export const TRUE: unique symbol = Symbol("true");
+export const FALSE: unique symbol = Symbol("false");
 
-export type MalAtom = MalNumber | MalSymbol | MalNil;
+export type MalAtom =
+  | MalNumber
+  | MalSymbol
+  | MalNil
+  | MalString
+  | MalFalse
+  | MalTrue;
 export type MalType = MalAtom | MalList | MalFunction;
 
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
@@ -31,6 +39,21 @@ export const malFunction = (value: MalFunction["value"]): MalFunction => ({
 export const malNil = (): MalNil => ({
   type: NIL,
   value: null,
+});
+
+export const malString = (value: MalString["value"]): MalString => ({
+  type: STRING,
+  value,
+});
+
+export const malTrue = (): MalTrue => ({
+  type: TRUE,
+  value: true,
+});
+
+export const malFalse = (): MalFalse => ({
+  type: FALSE,
+  value: false,
 });
 
 export type MalNumber = {
@@ -68,4 +91,19 @@ export type MalFunctionPrimitive = (...args: MalType[]) => MalType;
 export type MalNil = {
   type: typeof NIL;
   value: null;
+};
+
+export type MalString = {
+  type: typeof STRING;
+  value: string;
+};
+
+export type MalTrue = {
+  type: typeof TRUE;
+  value: true;
+};
+
+export type MalFalse = {
+  type: typeof FALSE;
+  value: false;
 };
