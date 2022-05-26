@@ -2,10 +2,11 @@ export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
 export const STRING: unique symbol = Symbol("string");
-export const EVALUATABLE_LIST: unique symbol = Symbol("evaluatable list");
+export const FUNCTION: unique symbol = Symbol("function");
+export const NIL: unique symbol = Symbol("nil");
 
-export type MalAtom = MalNumber | MalSymbol;
-export type MalType = MalAtom | MalList;
+export type MalAtom = MalNumber | MalSymbol | MalNil;
+export type MalType = MalAtom | MalList | MalFunction;
 
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
@@ -21,12 +22,17 @@ export const malList = (value: MalType[]): MalList => ({
   type: LIST,
   value,
 });
-// export const evaluatableList = (
-//   value: EvaluatableList["value"]
-// ): EvaluatableList => ({
-//   type: EVALUATABLE_LIST,
-//   value,
-// });
+
+export const malFunction = (value: MalFunctionPrimitive): MalFunction => ({
+  type: FUNCTION,
+  value,
+});
+
+export const malNil = (): MalNil => ({
+  type: NIL,
+  value: null,
+});
+
 export type MalNumber = {
   type: typeof NUMBER;
   value: number;
@@ -41,11 +47,18 @@ export type MalList = {
   type: typeof LIST;
   value:
     | MalType[]
-    | [MalSymbol<"def!">, string, number]
-    | [MalSymbol<"let*">, ...any[]];
+    | [MalSymbol<"def!">, MalSymbol, MalNumber]
+    | [MalSymbol<"let*">, ...MalType[]];
 };
 
-// export type EvaluatableList = {
-//   type: typeof EVALUATABLE_LIST;
-//   value: [(...args: number[]) => number, ...number[]];
-// };
+interface MalFunction {
+  type: typeof FUNCTION;
+  value: MalFunctionPrimitive;
+}
+
+export type MalFunctionPrimitive = (...args: MalType[]) => MalType;
+
+export type MalNil = {
+  type: typeof NIL;
+  value: null;
+};

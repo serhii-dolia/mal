@@ -7,8 +7,11 @@ import {
   //   evaluatableList,
   //   EvaluatableList,
   LIST,
+  malFunction,
+  MalFunctionPrimitive,
   MalList,
   malList,
+  MalNumber,
   malNumber,
   MalSymbol,
   MalType,
@@ -36,9 +39,10 @@ const EVAL = (ast: MalType, replEnv: Env) => {
           case "let*":
             throw new Error("wat");
           default:
+            // check if the type is number
             const evaluatedList = eval_ast(ast, replEnv);
             const method = evaluatedList[0];
-            const args: number[] = evaluatedList.slice(1) as number[];
+            const args = evaluatedList.slice(1) as MalNumber[];
             return method(...args);
         }
       }
@@ -52,28 +56,11 @@ const PRINT = (_: number | MalList | null) => {
   pr_str(_);
 };
 
-function eval_ast(
-  ast: MalList,
-  replEnv: Env
-): [(...args: number[]) => number, ...number[]];
-//   | ["def!", string, number]
-//   | ["let*", ...any[]];
-function eval_ast(ast: MalSymbol, replEnv: Env): (() => any) | number;
-function eval_ast(ast: Exclude<MalType, MalList>, replEnv: Env): number;
-function eval_ast(
-  ast: MalType,
-  replEnv: Env
-):
-  | [(...args: number[]) => number, ...number[]]
-  //   | ["def!", string, number]
-  //   | ["let*", ...any[]]
-  | (() => {})
-  | number
-  | SPECIAL_SYMBOL {
+function eval_ast(ast: MalType, replEnv: Env): MalType {
   switch (ast.type) {
     case SYMBOL: {
-      if (SPECIAL_SYMBOLS.includes(ast.value as any)) {
-        return ast.value as SPECIAL_SYMBOL;
+      if (SPECIAL_SYMBOLS.includes(ast.value as SPECIAL_SYMBOL)) {
+        return ast;
       }
       const x = replEnv.get(ast.value);
       if (typeof x === "function") {
@@ -83,10 +70,10 @@ function eval_ast(
       // return replEnv.get(ast.value);
     }
     case LIST: {
-      return ast.value.map((v) => EVAL(v, replEnv)) as any;
+      return ast.value.map((v) => EVAL(v, replEnv));
     }
     default:
-      return ast.value;
+      return ast;
   }
 }
 
@@ -94,31 +81,45 @@ type SPECIAL_SYMBOL = "def!" | "let*";
 
 const SPECIAL_SYMBOLS = ["def!", "let*"] as const;
 
-///type MalEnv = { [key: string]: (...args: any[]) => {} };
 const REPL_ENV = new Env(null);
-REPL_ENV.set("+", (...args: number[]) =>
-  args.reduce((acc, curr) => acc + curr, 0)
+
+REPL_ENV.set(
+  "+",
+  malFunction(((...args: MalNumber[]) =>
+    args.reduce(
+      (acc, curr) => malNumber(acc.value + curr.value),
+      malNumber(0)
+    )) as MalFunctionPrimitive)
 );
-REPL_ENV.set("-", (...args: number[]) =>
-  args.reduce((acc, curr, i) => {
-    if (i === 0) {
-      return curr;
-    } else {
-      return acc - curr;
-    }
-  }, 0)
+REPL_ENV.set(
+  "-",
+  malFunction(((...args: MalNumber[]) =>
+    args.reduce((acc, curr, i) => {
+      if (i === 0) {
+        return curr;
+      } else {
+        return malNumber(acc.value - curr.value);
+      }
+    }, malNumber(0))) as MalFunctionPrimitive)
 );
-REPL_ENV.set("*", (...args: number[]) =>
-  args.reduce((acc, curr) => acc * curr, 1)
+REPL_ENV.set(
+  "*",
+  malFunction(((...args: MalNumber[]) =>
+    args.reduce(
+      (acc, curr) => malNumber(acc.value * curr.value),
+      malNumber(1)
+    )) as MalFunctionPrimitive)
 );
-REPL_ENV.set("/", (...args: number[]) =>
-  args.reduce((acc, curr, i) => {
-    if (i === 0) {
-      return curr;
-    } else {
-      return acc / curr;
-    }
-  }, 0)
+REPL_ENV.set(
+  "/",
+  malFunction(((...args: MalNumber[]) =>
+    args.reduce((acc, curr, i) => {
+      if (i === 0) {
+        return curr;
+      } else {
+        return malNumber(acc.value / curr.value);
+      }
+    }, malNumber(0))) as MalFunctionPrimitive)
 );
 
 const rep = async () => PRINT(EVAL(await READ(), REPL_ENV));

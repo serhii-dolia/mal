@@ -1,13 +1,13 @@
 import { MalType } from "./types";
 
 export class Env {
-  private data: { [key: string]: ((...args: any[]) => any) | MalType };
+  private data: { [key: string]: MalType };
 
   constructor(private outer: Env | null) {
     this.data = {};
   }
 
-  set(symbol: string, value: MalType | ((...args: any[]) => any)) {
+  set(symbol: string, value: MalType) {
     this.data[symbol] = value;
   }
 
@@ -21,7 +21,7 @@ export class Env {
     }
   }
 
-  get(symbol: string): MalType | ((...args: any[]) => any) {
+  get(symbol: string): MalType {
     const env = this.find(symbol);
     if (!env) {
       throw new Error("Not found");
