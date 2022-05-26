@@ -88,7 +88,7 @@ export type MalSymbol<S = string> = {
 
 export type MalList = {
   type: typeof LIST;
-  value: DefList | LetList | MalType[];
+  value: MalType[];
 };
 
 export type MalVector = {
@@ -105,11 +105,22 @@ export type HashMapPair = [MalKeyword | MalString, MalType];
 
 export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalNumber];
 export type LetList = [MalSymbol<typeof LET>, MalList, MalType];
+export type DoList = [MalSymbol<typeof DO>, MalList];
+export type IfList = [MalSymbol<typeof IF>, MalType, MalType, MalType];
+export type FnList = [MalSymbol<typeof FN>, MalList, MalType];
 
 export const DEF = "def!" as const;
 export const LET = "let*" as const;
+export const IF = "if" as const;
+export const DO = "do" as const;
+export const FN = "fn*" as const;
 
-export type SPECIAL_SYMBOL = typeof DEF | typeof LET;
+export type SPECIAL_SYMBOL =
+  | typeof DEF
+  | typeof LET
+  | typeof IF
+  | typeof DO
+  | typeof FN;
 
 export interface MalFunction {
   type: typeof FUNCTION;

@@ -6,16 +6,21 @@ import { read_str } from "./reader.js";
 import {
   DEF,
   DefList,
+  DO,
+  DoList,
   FUNCTION,
   HASHMAP,
   LET,
   //   evaluatableList,
   //   EvaluatableList,
   LIST,
+  MalAtom,
+  MalFunction,
   malFunction,
   MalFunctionPrimitive,
   malHashMap,
   MalHashMap,
+  MalKeyword,
   MalList,
   malList,
   MalNumber,
@@ -37,6 +42,8 @@ const READ = async (): Promise<MalType> => {
 
 const EVAL = (ast: MalType, replEnv: Env): MalType => {
   switch (ast.type) {
+    case FUNCTION:
+      return ast;
     case VECTOR: {
       if (ast.value.length === 0) {
         return ast;
@@ -66,7 +73,7 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
           case LET: {
             const letEnv = new Env(replEnv);
             const bindingList = ast.value[1] as MalList;
-            const expressionToEvaluate = ast.value[2];
+            const expressionToEvaluate = ast.value[2] as MalType;
             if (bindingList.value.length % 2 === 1) {
               throw new Error("EOF");
             }
@@ -79,6 +86,13 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
               letEnv.set(key.value, EVAL(value, letEnv));
             }
             return EVAL(expressionToEvaluate, letEnv);
+          }
+          case DO: {
+            const doListValues = ast.value as unknown as DoList;
+            const evaluatedList = malList(
+              doListValues.slice(1).map<MalType>((el) => eval_ast(el, replEnv))
+            );
+            return evaluatedList.value[evaluatedList.value.length - 1];
           }
           default:
             // check if the type is number
@@ -106,18 +120,18 @@ const PRINT = (_: MalType) => {
 function eval_ast(ast: MalList, replEnv: Env): MalList;
 function eval_ast(ast: MalVector, replEnv: Env): MalVector;
 function eval_ast(ast: MalHashMap, replEnv: Env): MalHashMap;
-function eval_ast(
-  ast: Exclude<MalType, MalList | MalVector | MalHashMap>,
-  replEnv: Env
-): MalType;
+function eval_ast(ast: MalAtom, replEnv: Env): MalType;
+function eval_ast(ast: MalType, replEnv: Env): MalType;
+//function eval_ast(ast: MalKeyword, replEnv: Env): MalKeyword;
+//function eval_ast(ast: MalFunction, replEnv: Env): MalFunction;
+// function eval_ast(
+//   ast: Exclude<MalType, MalList | MalVector | MalHashMap | MalFunction>,
+//   replEnv: Env
+// ): MalType;
 function eval_ast(ast: MalType, replEnv: Env): MalType {
   switch (ast.type) {
     case SYMBOL: {
-      // if (SPECIAL_SYMBOLS.includes(ast.value as SPECIAL_SYMBOL)) {
-      //   return ast;
-      // }
       return replEnv.get(ast.value);
-      // return replEnv.get(ast.value);
     }
     case LIST: {
       return malList(ast.value.map((v) => EVAL(v, replEnv)));

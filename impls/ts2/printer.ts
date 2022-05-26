@@ -43,7 +43,7 @@ const toString = (_: MalType, print_readably: boolean): string => {
         .map((x) => `${toString(x[0], true)} ${toString(x[1], true)}`)
         .join(" ")}}`;
     case FUNCTION:
-      return _.value.toString();
+      return "#<function>";
   }
 };
 
