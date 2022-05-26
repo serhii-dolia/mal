@@ -19,7 +19,10 @@ import {
   // malList,
   MalSymbol,
   MalType,
+  MalVector,
+  malVector,
   SYMBOL,
+  VECTOR,
 } from "./types.js";
 import { Env } from "./env.js";
 
@@ -31,6 +34,13 @@ const READ = async (): Promise<MalType> => {
 
 const EVAL = (ast: MalType, replEnv: MalEnv) => {
   switch (ast.type) {
+    case VECTOR: {
+      if (ast.value.length === 0) {
+        return ast;
+      } else {
+        return eval_ast(ast, replEnv);
+      }
+    }
     case LIST: {
       if (ast.value.length === 0) {
         return ast;
@@ -54,6 +64,7 @@ const PRINT = (_: MalType) => {
 };
 
 function eval_ast(ast: MalList, replEnv: MalEnv): MalList;
+function eval_ast(ast: MalVector, replEnv: MalEnv): MalVector;
 function eval_ast(ast: MalType, replEnv: MalEnv): MalType {
   switch (ast.type) {
     case SYMBOL: {
@@ -65,6 +76,9 @@ function eval_ast(ast: MalType, replEnv: MalEnv): MalType {
     }
     case LIST: {
       return malList(ast.value.map((v) => EVAL(v, replEnv)));
+    }
+    case VECTOR: {
+      return malVector(ast.value.map((v) => EVAL(v, replEnv)));
     }
     default:
       return ast;

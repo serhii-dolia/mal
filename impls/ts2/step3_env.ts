@@ -7,6 +7,7 @@ import {
   DEF,
   DefList,
   FUNCTION,
+  LET,
   //   evaluatableList,
   //   EvaluatableList,
   LIST,
@@ -18,8 +19,11 @@ import {
   malNumber,
   MalSymbol,
   MalType,
+  malVector,
+  MalVector,
   SPECIAL_SYMBOLS,
   SYMBOL,
+  VECTOR,
 } from "./types.js";
 import { Env } from "./env.js";
 
@@ -31,6 +35,14 @@ const READ = async (): Promise<MalType> => {
 
 const EVAL = (ast: MalType, replEnv: Env): MalType => {
   switch (ast.type) {
+    case VECTOR: {
+      if (ast.value.length === 0) {
+        return ast;
+      } else {
+        return eval_ast(ast, replEnv);
+      }
+    }
+
     case LIST: {
       if (ast.value.length === 0) {
         return ast;
@@ -42,7 +54,7 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
             const evaluatedValue = EVAL(varValue, replEnv);
             replEnv.set(varName.value, evaluatedValue);
             return evaluatedValue;
-          case "let*":
+          case LET:
             throw new Error("wat");
           default:
             // check if the type is number
@@ -68,7 +80,11 @@ const PRINT = (_: MalType) => {
 };
 
 function eval_ast(ast: MalList, replEnv: Env): MalList;
-function eval_ast(ast: Exclude<MalType, MalList>, replEnv: Env): MalType;
+function eval_ast(ast: MalVector, replEnv: Env): MalVector;
+function eval_ast(
+  ast: Exclude<MalType, MalList | MalVector>,
+  replEnv: Env
+): MalType;
 function eval_ast(ast: MalType, replEnv: Env): MalType {
   switch (ast.type) {
     case SYMBOL: {
@@ -80,6 +96,9 @@ function eval_ast(ast: MalType, replEnv: Env): MalType {
     }
     case LIST: {
       return malList(ast.value.map((v) => EVAL(v, replEnv)));
+    }
+    case VECTOR: {
+      return malVector(ast.value.map((v) => EVAL(v, replEnv)));
     }
     default:
       return ast;
