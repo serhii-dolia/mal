@@ -2,6 +2,7 @@ import {
   HashMapPair,
   KEYWORD,
   MalAtom,
+  malFalse,
   malHashMap,
   MalHashMap,
   MalKeyword,
@@ -14,6 +15,7 @@ import {
   MalString,
   malString,
   malSymbol,
+  malTrue,
   MalType,
   MalVector,
   malVector,
@@ -153,6 +155,12 @@ const determine_atom = (_: string): MalAtom => {
   }
   const number = parseInt(_);
   if (Number.isNaN(number)) {
+    if (_ === "true") {
+      return malTrue();
+    }
+    if (_ === "false") {
+      return malFalse();
+    }
     return malSymbol(_);
   } else {
     return malNumber(number);
