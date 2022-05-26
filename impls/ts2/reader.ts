@@ -34,14 +34,22 @@ class Reader {
 }
 
 export const read_str = (_: string) => {
+  let leftParensCount = 0;
+  let rightParensCount = 0;
+  for (let i = 0; i < _.length; i++) {
+    if (_[i] === "(") leftParensCount++;
+    if (_[i] === ")") rightParensCount++;
+  }
+  if (leftParensCount !== rightParensCount) {
+    throw new Error("Parents are not matching!");
+  }
   return read_form(new Reader(tokenize(_)));
 };
 
 const tokenize = (_: string) => {
-  const a = _.split(
+  return _.split(
     /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/
   ).filter((_) => _ !== "");
-  return a;
 };
 
 const read_form = (_: Reader): MalList | MalAtom => {
