@@ -1,11 +1,13 @@
 export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
+export const VECTOR: unique symbol = Symbol("vector");
 export const STRING: unique symbol = Symbol("string");
 export const FUNCTION: unique symbol = Symbol("function");
 export const NIL: unique symbol = Symbol("nil");
 export const TRUE: unique symbol = Symbol("true");
 export const FALSE: unique symbol = Symbol("false");
+export const KEYWORD: unique symbol = Symbol("keyword");
 
 export type MalAtom =
   | MalNumber
@@ -13,8 +15,10 @@ export type MalAtom =
   | MalNil
   | MalString
   | MalFalse
-  | MalTrue;
-export type MalType = MalAtom | MalList | MalFunction;
+  | MalTrue
+  | MalKeyword;
+
+export type MalType = MalAtom | MalList | MalVector | MalFunction;
 
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
@@ -28,6 +32,11 @@ export const malNumber = (value: MalNumber["value"]): MalNumber => ({
 
 export const malList = (value: MalList["value"]): MalList => ({
   type: LIST,
+  value,
+});
+
+export const malVector = (value: MalVector["value"]): MalVector => ({
+  type: VECTOR,
   value,
 });
 
@@ -56,6 +65,11 @@ export const malFalse = (): MalFalse => ({
   value: false,
 });
 
+export const malKeyword = (value: MalKeyword["value"]): MalKeyword => ({
+  type: KEYWORD,
+  value,
+});
+
 export type MalNumber = {
   type: typeof NUMBER;
   value: number;
@@ -69,6 +83,11 @@ export type MalSymbol<S = string> = {
 export type MalList = {
   type: typeof LIST;
   value: DefList | LetList | MalType[];
+};
+
+export type MalVector = {
+  type: typeof VECTOR;
+  value: MalType[];
 };
 
 export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalNumber];
@@ -106,4 +125,9 @@ export type MalTrue = {
 export type MalFalse = {
   type: typeof FALSE;
   value: false;
+};
+
+export type MalKeyword = {
+  type: typeof KEYWORD;
+  value: `:${string}`;
 };

@@ -1,14 +1,20 @@
 import {
   MalAtom,
+  MalKeyword,
+  malKeyword,
   malList,
   MalList,
   malNumber,
+  MalString,
   malString,
   malSymbol,
   MalType,
+  MalVector,
+  malVector,
 } from "./types.js";
 
 const LEFT_PAREN = "(";
+const LEFT_SQUARE_BRACKET = "[";
 const EOF = "EOF";
 class Reader {
   private currentPosition = 0;
@@ -34,15 +40,15 @@ class Reader {
 }
 
 export const read_str = (_: string) => {
-  let leftParensCount = 0;
-  let rightParensCount = 0;
-  for (let i = 0; i < _.length; i++) {
-    if (_[i] === "(") leftParensCount++;
-    if (_[i] === ")") rightParensCount++;
-  }
-  if (leftParensCount !== rightParensCount) {
-    throw new Error("Parents are not matching!");
-  }
+  // let leftParensCount = 0;
+  // let rightParensCount = 0;
+  // for (let i = 0; i < _.length; i++) {
+  //   if (_[i] === "(") leftParensCount++;
+  //   if (_[i] === ")") rightParensCount++;
+  // }
+  // if (leftParensCount !== rightParensCount) {
+  //   throw new Error("Parents are not matching!");
+  // }
   return read_form(new Reader(tokenize(_)));
 };
 
@@ -52,51 +58,68 @@ const tokenize = (_: string) => {
   ).filter((_) => _ !== "");
 };
 
-const read_form = (_: Reader): MalList | MalAtom => {
+const read_form = (_: Reader): MalList | MalVector | MalAtom => {
   switch (_.peek()) {
     case LEFT_PAREN:
-      return read_list(_);
+      return read_list(_, ")", malList);
+    case LEFT_SQUARE_BRACKET:
+      return read_list(_, "]", malVector);
     default:
       return read_atom(_);
   }
 };
 
-const read_list = (_: Reader): MalList => {
+const read_list = (
+  _: Reader,
+  closingValue: ")" | "]",
+  wrapper: typeof malList | typeof malVector
+): MalList | MalVector => {
   let currentSymbol = _.next();
   let currentValue: MalType = read_form(_);
   // case for the empty lists
   if (currentValue.value === ")") {
-    return malList([]);
+    return wrapper([]);
   }
   const values: MalType[] = [currentValue];
-  while (currentValue.value !== ")") {
+  while (currentValue.value !== closingValue) {
     currentSymbol = _.next();
     if (currentSymbol === EOF) {
       throw new Error(EOF);
     }
     currentValue = read_form(_);
-    if (currentValue.value === ")") {
+    if (currentValue.value === closingValue) {
       break;
     }
     values.push(currentValue);
   }
-  return malList(values);
+  return wrapper(values);
 };
 
 const read_atom = (_: Reader): MalAtom => determine_atom(_.peek());
 
 const determine_atom = (_: string): MalAtom => {
+  if (_.startsWith(":")) {
+    return malKeyword(_ as MalKeyword["value"]);
+  }
   if (_.startsWith('"')) {
-    if (_.endsWith(`"`)) {
-      return malString(_.slice(1, -1));
-    } else {
-      throw new Error("EOF");
-    }
+    return read_string(_);
   }
   const number = parseInt(_);
   if (Number.isNaN(number)) {
     return malSymbol(_);
   } else {
     return malNumber(number);
+  }
+};
+
+//we know it starts with `"`
+const read_string = (_: string): MalString => {
+  if (_.length === 1) {
+    throw new Error(EOF);
+  }
+  if (_.endsWith(`"`)) {
+    return malString(_.slice(1, -1));
+  } else {
+    throw new Error(EOF);
   }
 };

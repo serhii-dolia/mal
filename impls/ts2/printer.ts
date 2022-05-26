@@ -1,6 +1,7 @@
 import {
   FALSE,
   FUNCTION,
+  KEYWORD,
   LIST,
   MalString,
   MalType,
@@ -9,6 +10,7 @@ import {
   STRING,
   SYMBOL,
   TRUE,
+  VECTOR,
 } from "./types.js";
 
 export const pr_str = (_: MalType, print_readably: boolean) => {
@@ -21,6 +23,7 @@ const toString = (_: MalType, print_readably: boolean): string => {
     case SYMBOL:
     case TRUE:
     case FALSE:
+    case KEYWORD:
       return _.value.toString();
     case STRING:
       if (!print_readably) {
@@ -32,6 +35,8 @@ const toString = (_: MalType, print_readably: boolean): string => {
       return "nil";
     case LIST:
       return `(${_.value.map((x) => toString(x, print_readably)).join(" ")})`;
+    case VECTOR:
+      return `[${_.value.map((x) => toString(x, print_readably)).join(" ")}]`;
     case FUNCTION:
       return _.value.toString();
   }
