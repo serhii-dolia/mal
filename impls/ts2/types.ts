@@ -111,8 +111,6 @@ export const LET = "let*" as const;
 
 export type SPECIAL_SYMBOL = typeof DEF | typeof LET;
 
-export const SPECIAL_SYMBOLS = [DEF, LET] as const;
-
 export interface MalFunction {
   type: typeof FUNCTION;
   value: MalFunctionPrimitive;
