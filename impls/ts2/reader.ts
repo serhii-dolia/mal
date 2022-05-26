@@ -77,7 +77,7 @@ const read_list = (
   let currentSymbol = _.next();
   let currentValue: MalType = read_form(_);
   // case for the empty lists
-  if (currentValue.value === ")") {
+  if (currentValue.value === closingValue) {
     return wrapper([]);
   }
   const values: MalType[] = [currentValue];
