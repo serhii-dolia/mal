@@ -7,12 +7,15 @@ import {
   DEF,
   DefList,
   FUNCTION,
+  HASHMAP,
   LET,
   //   evaluatableList,
   //   EvaluatableList,
   LIST,
   malFunction,
   MalFunctionPrimitive,
+  malHashMap,
+  MalHashMap,
   MalList,
   malList,
   MalNumber,
@@ -36,6 +39,13 @@ const READ = async (): Promise<MalType> => {
 const EVAL = (ast: MalType, replEnv: Env): MalType => {
   switch (ast.type) {
     case VECTOR: {
+      if (ast.value.length === 0) {
+        return ast;
+      } else {
+        return eval_ast(ast, replEnv);
+      }
+    }
+    case HASHMAP: {
       if (ast.value.length === 0) {
         return ast;
       } else {
@@ -81,8 +91,9 @@ const PRINT = (_: MalType) => {
 
 function eval_ast(ast: MalList, replEnv: Env): MalList;
 function eval_ast(ast: MalVector, replEnv: Env): MalVector;
+function eval_ast(ast: MalHashMap, replEnv: Env): MalHashMap;
 function eval_ast(
-  ast: Exclude<MalType, MalList | MalVector>,
+  ast: Exclude<MalType, MalList | MalVector | MalHashMap>,
   replEnv: Env
 ): MalType;
 function eval_ast(ast: MalType, replEnv: Env): MalType {
@@ -99,6 +110,11 @@ function eval_ast(ast: MalType, replEnv: Env): MalType {
     }
     case VECTOR: {
       return malVector(ast.value.map((v) => EVAL(v, replEnv)));
+    }
+    case HASHMAP: {
+      return malHashMap(
+        ast.value.map(([key, value]) => [key, EVAL(value, replEnv)])
+      );
     }
     default:
       return ast;

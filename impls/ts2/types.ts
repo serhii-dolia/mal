@@ -2,6 +2,7 @@ export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
 export const VECTOR: unique symbol = Symbol("vector");
+export const HASHMAP: unique symbol = Symbol("hashmap");
 export const STRING: unique symbol = Symbol("string");
 export const FUNCTION: unique symbol = Symbol("function");
 export const NIL: unique symbol = Symbol("nil");
@@ -18,7 +19,7 @@ export type MalAtom =
   | MalTrue
   | MalKeyword;
 
-export type MalType = MalAtom | MalList | MalVector | MalFunction;
+export type MalType = MalAtom | MalList | MalVector | MalHashMap | MalFunction;
 
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
@@ -37,6 +38,11 @@ export const malList = (value: MalList["value"]): MalList => ({
 
 export const malVector = (value: MalVector["value"]): MalVector => ({
   type: VECTOR,
+  value,
+});
+
+export const malHashMap = (value: MalHashMap["value"]): MalHashMap => ({
+  type: HASHMAP,
   value,
 });
 
@@ -89,6 +95,13 @@ export type MalVector = {
   type: typeof VECTOR;
   value: MalType[];
 };
+
+export type MalHashMap = {
+  type: typeof HASHMAP;
+  value: HashMapPair[];
+};
+
+export type HashMapPair = [MalKeyword | MalString, MalType];
 
 export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalNumber];
 export type LetList = [MalSymbol<typeof LET>, ...MalType[]];

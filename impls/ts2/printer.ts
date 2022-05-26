@@ -1,6 +1,7 @@
 import {
   FALSE,
   FUNCTION,
+  HASHMAP,
   KEYWORD,
   LIST,
   MalString,
@@ -37,6 +38,10 @@ const toString = (_: MalType, print_readably: boolean): string => {
       return `(${_.value.map((x) => toString(x, print_readably)).join(" ")})`;
     case VECTOR:
       return `[${_.value.map((x) => toString(x, print_readably)).join(" ")}]`;
+    case HASHMAP:
+      return `{${_.value
+        .map((x) => `${toString(x[0], true)} ${toString(x[1], true)}`)
+        .join(" ")}}`;
     case FUNCTION:
       return _.value.toString();
   }

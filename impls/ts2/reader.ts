@@ -1,9 +1,15 @@
 import {
+  HashMapPair,
+  KEYWORD,
   MalAtom,
+  malHashMap,
+  MalHashMap,
   MalKeyword,
   malKeyword,
   malList,
   MalList,
+  malNil,
+  MalNil,
   malNumber,
   MalString,
   malString,
@@ -11,10 +17,12 @@ import {
   MalType,
   MalVector,
   malVector,
+  STRING,
 } from "./types.js";
 
 const LEFT_PAREN = "(";
 const LEFT_SQUARE_BRACKET = "[";
+const LEFT_FIGURE_BRACKET = "{";
 const EOF = "EOF";
 class Reader {
   private currentPosition = 0;
@@ -58,15 +66,54 @@ const tokenize = (_: string) => {
   ).filter((_) => _ !== "");
 };
 
-const read_form = (_: Reader): MalList | MalVector | MalAtom => {
+const read_form = (_: Reader): MalList | MalVector | MalHashMap | MalAtom => {
   switch (_.peek()) {
     case LEFT_PAREN:
       return read_list(_, ")", malList);
     case LEFT_SQUARE_BRACKET:
       return read_list(_, "]", malVector);
+    case LEFT_FIGURE_BRACKET:
+      return read_hashmap(_);
     default:
       return read_atom(_);
   }
+};
+
+const read_hashmap = (_: Reader): MalHashMap => {
+  const values: HashMapPair[] = [];
+  while (true) {
+    const result = read_next_hasmap_pair(_);
+    if (result === null) {
+      break;
+    }
+    values.push(result);
+  }
+
+  return malHashMap(values);
+};
+
+const read_next_hasmap_pair = (_: Reader): HashMapPair | null => {
+  let keySymbol = _.next();
+  if (keySymbol === EOF) {
+    throw new Error(EOF);
+  }
+  let keyValue = read_form(_);
+  if (keyValue.value === "}") {
+    return null;
+  }
+  if (![KEYWORD, STRING].includes(keyValue.type)) {
+    throw new Error("Wrong hashmap key type");
+  }
+
+  let valueSymbol = _.next();
+  if (valueSymbol === EOF) {
+    throw new Error(EOF);
+  }
+  let valueValue = read_form(_);
+  if (valueValue.value === "}") {
+    throw new Error(EOF);
+  }
+  return [keyValue as MalKeyword | MalString, valueValue];
 };
 
 const read_list = (
