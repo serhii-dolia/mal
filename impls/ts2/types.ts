@@ -104,7 +104,7 @@ export type MalHashMap = {
 export type HashMapPair = [MalKeyword | MalString, MalType];
 
 export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalNumber];
-export type LetList = [MalSymbol<typeof LET>, ...MalType[]];
+export type LetList = [MalSymbol<typeof LET>, MalList, MalType];
 
 export const DEF = "def!" as const;
 export const LET = "let*" as const;
