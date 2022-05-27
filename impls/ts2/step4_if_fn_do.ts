@@ -104,12 +104,15 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
           }
           case IF: {
             const ifListValues = ast.value as unknown as IfList;
-            const evaluatedCondition = eval_ast(ifListValues[1], replEnv);
+            const evaluatedCondition = EVAL(
+              eval_ast(ifListValues[1], replEnv),
+              replEnv
+            );
             if (![NIL, FALSE].includes(evaluatedCondition.type)) {
-              return eval_ast(ifListValues[2], replEnv);
+              return EVAL(ifListValues[2], replEnv);
             } else {
               if (ifListValues[3]) {
-                return eval_ast(ifListValues[3], replEnv);
+                return EVAL(ifListValues[3], replEnv);
               } else {
                 return malNil();
               }
