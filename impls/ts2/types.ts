@@ -145,8 +145,30 @@ export type MalNil = {
 
 export type MalString = {
   type: typeof STRING;
+  value: StringElement[];
+};
+
+export type StringElement =
+  | NormalStringElement
+  | EscapedBackSlash
+  | EscapedDoubleQuote
+  | EscapedNewLine;
+export type NormalStringElement = {
+  type: "normalStringElement";
   value: string;
 };
+export type EscapedBackSlash = {
+  type: "escapedBackSlash";
+  value: typeof BackSlash;
+};
+export type EscapedDoubleQuote = {
+  type: "escapedDoubleQuote";
+  value: typeof DoubleQuote;
+};
+export type EscapedNewLine = { type: "escapedNewLine"; value: typeof LetterN };
+export const BackSlash = "\\" as const;
+export const DoubleQuote = `\"` as const;
+export const LetterN = "n" as const;
 
 export type MalTrue = {
   type: typeof TRUE;

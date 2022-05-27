@@ -20,6 +20,10 @@ import {
   MalVector,
   malVector,
   STRING,
+  StringElement,
+  BackSlash,
+  LetterN,
+  DoubleQuote,
 } from "./types.js";
 
 const LEFT_PAREN = "(";
@@ -175,9 +179,36 @@ const read_string = (_: string): MalString => {
   if (_.length === 1) {
     throw new Error(EOF);
   }
-  if (_.endsWith(`"`)) {
-    return malString(_.slice(1, -1));
-  } else {
+  const primitives: StringElement[] = [];
+  //we know that 0th element is " and last is supposed to be "
+  for (let i = 0; i < _.length; i++) {
+    if (_[i] === BackSlash) {
+      if (_[i + 1] === BackSlash) {
+        primitives.push({ type: "escapedBackSlash", value: BackSlash });
+        i += 1;
+        continue;
+      }
+      if (_[i + 1] === "n") {
+        primitives.push({ type: "escapedNewLine", value: LetterN });
+        i += 1;
+        continue;
+      }
+      if (_[i + 1] === DoubleQuote) {
+        primitives.push({ type: "escapedDoubleQuote", value: DoubleQuote });
+        i += 1;
+        continue;
+      }
+    } else {
+      primitives.push({ type: "normalStringElement", value: _[i] });
+    }
+  }
+
+  const lastSymbol = primitives[primitives.length - 1];
+  if (
+    lastSymbol.type !== "normalStringElement" ||
+    lastSymbol.value !== DoubleQuote
+  ) {
     throw new Error(EOF);
   }
+  return malString(primitives);
 };

@@ -9,6 +9,7 @@ import {
   NIL,
   NUMBER,
   STRING,
+  StringElement,
   SYMBOL,
   TRUE,
   VECTOR,
@@ -30,7 +31,7 @@ const toString = (_: MalType, print_readably: boolean): string => {
       if (!print_readably) {
         return `"${_.value}"`;
       } else {
-        return readable_string(_);
+        return readable_string(_, print_readably);
       }
     case NIL:
       return "nil";
@@ -47,6 +48,23 @@ const toString = (_: MalType, print_readably: boolean): string => {
   }
 };
 
-const readable_string = (_: MalString): string => {
-  return `"${_.value.replaceAll(`\"`, `"`)}"`;
+const readable_string = (_: MalString, print_readably: boolean): string => {
+  if (!print_readably) {
+    return `${_.value.map((v) => v.value).join("")}`;
+  } else {
+    return `${_.value.map(readable_string_element).join("")}`;
+  }
+};
+
+const readable_string_element = (_: StringElement): string => {
+  switch (_.type) {
+    case "normalStringElement":
+      return _.value;
+    case "escapedDoubleQuote":
+      return '\\"';
+    case "escapedBackSlash":
+      return "\\\\";
+    case "escapedNewLine":
+      return "\\n";
+  }
 };
