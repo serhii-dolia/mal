@@ -161,6 +161,9 @@ const determine_atom = (_: string): MalAtom => {
     if (_ === "false") {
       return malFalse();
     }
+    if (_ === "nil") {
+      return malNil();
+    }
     return malSymbol(_);
   } else {
     return malNumber(number);
