@@ -9,6 +9,8 @@ import {
   DO,
   DoList,
   FALSE,
+  FN,
+  FnList,
   FUNCTION,
   HASHMAP,
   IF,
@@ -112,7 +114,22 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
               }
             }
           }
+          case FN:
+            1;
+            return malNil();
+
           default:
+            //check for fn condition
+            // if (firstValue.type === LIST && firstValue.value[0].value === FN) {
+            //   //firstValue is this: (fn* (a b) (+ b a))
+            //   const args: MalList = firstValue.value[1] as MalList;
+            //   const exprs = ast.value.slice(1);
+            //   const fnEnv = new Env(replEnv, args.value as MalSymbol[], exprs);
+            //   return eval_ast(
+            //     malFunction(() => EVAL(firstValue.value[2], fnEnv)),
+            //     fnEnv
+            //   );
+            // }
             // check if the type is number
             const evaluatedList = eval_ast(ast, replEnv);
             const firstElement = evaluatedList.value[0];
@@ -140,12 +157,6 @@ function eval_ast(ast: MalVector, replEnv: Env): MalVector;
 function eval_ast(ast: MalHashMap, replEnv: Env): MalHashMap;
 function eval_ast(ast: MalAtom, replEnv: Env): MalType;
 function eval_ast(ast: MalType, replEnv: Env): MalType;
-//function eval_ast(ast: MalKeyword, replEnv: Env): MalKeyword;
-//function eval_ast(ast: MalFunction, replEnv: Env): MalFunction;
-// function eval_ast(
-//   ast: Exclude<MalType, MalList | MalVector | MalHashMap | MalFunction>,
-//   replEnv: Env
-// ): MalType;
 function eval_ast(ast: MalType, replEnv: Env): MalType {
   switch (ast.type) {
     case SYMBOL: {
