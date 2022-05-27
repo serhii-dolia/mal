@@ -10,6 +10,7 @@ import {
   MalFunctionPrimitive,
   MalList,
   malList,
+  MalNil,
   malNil,
   malNumber,
   MalNumber,
@@ -17,6 +18,7 @@ import {
   MalSymbol,
   malTrue,
   MalType,
+  NIL,
 } from "./types.js";
 
 const map = new Map<string, MalFunction>();
@@ -89,8 +91,12 @@ map.set(
 
 map.set(
   "count",
-  malFunction(((_: MalList) =>
-    malNumber(_.value.length)) as MalFunctionPrimitive)
+  malFunction(
+    ((_: MalList | MalNil): MalNumber =>
+      _.type === NIL
+        ? malNumber(0)
+        : malNumber(_.value.length)) as MalFunctionPrimitive
+  )
 );
 
 map.set(
