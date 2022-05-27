@@ -16,7 +16,7 @@ const EVAL = (_: MalType) => {
 };
 
 const PRINT = (_: MalType) => {
-  pr_str(_, true);
+  console.log(pr_str(_, true));
 };
 
 const rep = async () => {

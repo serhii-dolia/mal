@@ -168,7 +168,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
 };
 
 const PRINT = (_: MalType) => {
-  pr_str(_, true);
+  console.log(pr_str(_, true));
 };
 
 function eval_ast(ast: MalList, replEnv: Env): MalList;
@@ -209,6 +209,14 @@ REPL_ENV.set(
 );
 
 PRINT(EVAL(read_str("(def! not (fn* (a) (if a false true)))"), REPL_ENV));
+PRINT(
+  EVAL(
+    read_str(
+      `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
+    ),
+    REPL_ENV
+  )
+);
 
 const rep = async () => {
   while (true) {

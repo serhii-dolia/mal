@@ -1,4 +1,4 @@
-import { pr_str, toString } from "./printer.js";
+import { pr_str } from "./printer.js";
 import { read_str, read_string_to_mal_string } from "./reader.js";
 import * as fs from "node:fs";
 import {
@@ -71,7 +71,7 @@ map.set(
 map.set(
   "prn",
   malFunction((_: MalType) => {
-    pr_str(_, true);
+    console.log(pr_str(_, true));
     return malNil();
   })
 );
@@ -161,27 +161,35 @@ map.set(
 map.set(
   "read-string",
   malFunction(((_: MalString) =>
-    read_str(toString(_, true))) as MalFunctionPrimitive)
+    read_str(pr_str(_, true))) as MalFunctionPrimitive)
 );
 
 map.set(
   "slurp",
   malFunction(((fileName: MalString) => {
-    const unwrappedName = toString(fileName, true).slice(1, -1);
+    const unwrappedName = pr_str(fileName, true).slice(1, -1);
     const fileContent = fs.readFileSync(unwrappedName, { encoding: "utf-8" });
     return read_string_to_mal_string(`"${fileContent}"`);
   }) as MalFunctionPrimitive)
 );
 
-// map.set(
-//   "pr-str",
-//   malFunction(((...args: MalString[]) => {
-//     if (args.length === 0) {
-//       return read_string('""');
-//     }
-//     const str = args.map((a) => `"${toString(a, true)}"`).join("");
-//     return read_string(str);
-//   }) as MalFunctionPrimitive)
-// );
+map.set(
+  "pr-str",
+  malFunction(((...args: MalString[]) => {
+    if (args.length === 0) {
+      return read_string_to_mal_string('""');
+    }
+    const str = args.map((a) => `"${pr_str(a, true)}"`).join("");
+    return read_string_to_mal_string(str);
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "str",
+  malFunction(((...args: MalString[]) => {
+    const str = args.map((a) => `"${pr_str(a, false)}"`).join("");
+    return read_string_to_mal_string(str);
+  }) as MalFunctionPrimitive)
+);
 
 export default map;

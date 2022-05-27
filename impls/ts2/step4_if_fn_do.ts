@@ -143,7 +143,7 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
 };
 
 const PRINT = (_: MalType) => {
-  pr_str(_, true);
+  console.log(pr_str(_, true));
 };
 
 function eval_ast(ast: MalList, replEnv: Env): MalList;
