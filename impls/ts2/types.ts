@@ -71,6 +71,13 @@ export const malFalse = (): MalFalse => ({
   value: false,
 });
 
+export const malBoolean = (value: MalBoolean["value"]): MalBoolean => {
+  if (value) {
+    return malTrue();
+  }
+  return malFalse();
+};
+
 export const malKeyword = (value: MalKeyword["value"]): MalKeyword => ({
   type: KEYWORD,
   value,
@@ -150,6 +157,8 @@ export type MalFalse = {
   type: typeof FALSE;
   value: false;
 };
+
+export type MalBoolean = MalTrue | MalFalse;
 
 export type MalKeyword = {
   type: typeof KEYWORD;

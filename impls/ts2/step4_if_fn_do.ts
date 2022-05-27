@@ -40,6 +40,7 @@ import {
   VECTOR,
 } from "./types.js";
 import { Env } from "./env.js";
+import core from "./core.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -115,22 +116,12 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
             }
           }
           case FN:
-            1;
-            return malNil();
+            const args: MalList = ast.value[1] as MalList;
+            return malFunction((..._: MalType[]) =>
+              EVAL(ast.value[2], new Env(replEnv, args.value as MalSymbol[], _))
+            );
 
           default:
-            //check for fn condition
-            // if (firstValue.type === LIST && firstValue.value[0].value === FN) {
-            //   //firstValue is this: (fn* (a b) (+ b a))
-            //   const args: MalList = firstValue.value[1] as MalList;
-            //   const exprs = ast.value.slice(1);
-            //   const fnEnv = new Env(replEnv, args.value as MalSymbol[], exprs);
-            //   return eval_ast(
-            //     malFunction(() => EVAL(firstValue.value[2], fnEnv)),
-            //     fnEnv
-            //   );
-            // }
-            // check if the type is number
             const evaluatedList = eval_ast(ast, replEnv);
             const firstElement = evaluatedList.value[0];
             if (firstElement.type === FUNCTION) {
@@ -180,44 +171,9 @@ function eval_ast(ast: MalType, replEnv: Env): MalType {
 
 const REPL_ENV = new Env(null);
 
-REPL_ENV.set(
-  "+",
-  malFunction(((...args: MalNumber[]) =>
-    args.reduce(
-      (acc, curr) => malNumber(acc.value + curr.value),
-      malNumber(0)
-    )) as MalFunctionPrimitive)
-);
-REPL_ENV.set(
-  "-",
-  malFunction(((...args: MalNumber[]) =>
-    args.reduce((acc, curr, i) => {
-      if (i === 0) {
-        return curr;
-      } else {
-        return malNumber(acc.value - curr.value);
-      }
-    }, malNumber(0))) as MalFunctionPrimitive)
-);
-REPL_ENV.set(
-  "*",
-  malFunction(((...args: MalNumber[]) =>
-    args.reduce(
-      (acc, curr) => malNumber(acc.value * curr.value),
-      malNumber(1)
-    )) as MalFunctionPrimitive)
-);
-REPL_ENV.set(
-  "/",
-  malFunction(((...args: MalNumber[]) =>
-    args.reduce((acc, curr, i) => {
-      if (i === 0) {
-        return curr;
-      } else {
-        return malNumber(acc.value / curr.value);
-      }
-    }, malNumber(0))) as MalFunctionPrimitive)
-);
+for (const [key, value] of core) {
+  REPL_ENV.set(key, value);
+}
 
 const rep = async () => {
   while (true) {
