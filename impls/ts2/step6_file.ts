@@ -139,19 +139,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
                 )
               );
             }
-            // case EVAL_COMMAND: {
-            //   const evalList = ast.value as EvalList;
-            //   return EVAL(evalList[1], env);
-            //   // return tcoFunction(
-            //   //   evalList[1],
-            //   //   malList([]),
-            //   //   env,
-            //   //   malFunction(() => EVAL(evalList[1], env))
-            //   // );
-            // }
-            // return malFunction((..._: MalType[]) =>
-            //   EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
-            // );
 
             default:
               const evaluatedList = eval_ast(ast, env);
