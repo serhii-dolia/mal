@@ -48,7 +48,7 @@ const READ = async (): Promise<MalType> => {
   return read_str(await rl.question("input> "));
 };
 
-const EVAL = (ast: MalType, replEnv: Env): MalType => {
+const EVAL = (ast: MalType, env: Env): MalType => {
   while (true) {
     switch (ast.type) {
       case FUNCTION:
@@ -57,14 +57,14 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
         if (ast.value.length === 0) {
           return ast;
         } else {
-          return eval_ast(ast, replEnv);
+          return eval_ast(ast, env);
         }
       }
       case HASHMAP: {
         if (ast.value.length === 0) {
           return ast;
         } else {
-          return eval_ast(ast, replEnv);
+          return eval_ast(ast, env);
         }
       }
 
@@ -76,11 +76,11 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
           switch (firstValue.value) {
             case DEF:
               const [, varName, varValue] = ast.value as DefList;
-              const evaluatedValue = EVAL(varValue, replEnv);
-              replEnv.set(varName.value, evaluatedValue);
+              const evaluatedValue = EVAL(varValue, env);
+              env.set(varName.value, evaluatedValue);
               return evaluatedValue;
             case LET: {
-              const letEnv = new Env(replEnv);
+              const letEnv = new Env(env);
               const bindingList = ast.value[1] as MalList;
               const expressionToEvaluate = ast.value[2] as MalType;
               if (bindingList.value.length % 2 === 1) {
@@ -94,14 +94,15 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
                 }
                 letEnv.set(key.value, EVAL(value, letEnv));
               }
-              return EVAL(expressionToEvaluate, letEnv);
+              env = letEnv;
+              ast = expressionToEvaluate;
+              continue;
+              //return EVAL(expressionToEvaluate, letEnv);
             }
             case DO: {
               const doListValues = ast.value as unknown as DoList;
               const evaluatedList = malList(
-                doListValues
-                  .slice(1, -1)
-                  .map<MalType>((el) => EVAL(el, replEnv))
+                doListValues.slice(1, -1).map<MalType>((el) => EVAL(el, env))
               );
               // TCO magic
               ast = doListValues[doListValues.length - 1];
@@ -111,30 +112,33 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
             case IF: {
               const ifListValues = ast.value as unknown as IfList;
               const evaluatedCondition = EVAL(
-                eval_ast(ifListValues[1], replEnv),
-                replEnv
+                eval_ast(ifListValues[1], env),
+                env
               );
               if (![NIL, FALSE].includes(evaluatedCondition.type)) {
-                return EVAL(ifListValues[2], replEnv);
+                //TCO magic
+                ast = ifListValues[2]; //EVAL(ifListValues[2], env);
+                continue;
               } else {
-                if (ifListValues[3]) {
-                  return EVAL(ifListValues[3], replEnv);
-                } else {
-                  return malNil();
-                }
+                // TCO magic
+                ast = ifListValues[3] || malNil();
+                continue;
+                // if (ifListValues[3]) {
+                //   return EVAL(ifListValues[3], env);
+                // } else {
+                //   return malNil();
+                // }
               }
             }
             case FN:
-              const args: MalList = ast.value[1] as MalList;
+              const fnList = ast.value as FnList;
+              const args: MalList = fnList[1] as MalList;
               return malFunction((..._: MalType[]) =>
-                EVAL(
-                  (ast as any).value[2],
-                  new Env(replEnv, args.value as MalSymbol[], _)
-                )
+                EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
               );
 
             default:
-              const evaluatedList = eval_ast(ast, replEnv);
+              const evaluatedList = eval_ast(ast, env);
               const firstElement = evaluatedList.value[0];
               if (firstElement.type === FUNCTION) {
                 // case for (+ 1 2)
@@ -147,7 +151,7 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
         }
       }
       default:
-        return eval_ast(ast, replEnv);
+        return eval_ast(ast, env);
     }
   }
 };
