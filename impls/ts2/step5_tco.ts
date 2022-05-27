@@ -37,7 +37,10 @@ import {
   MalVector,
   NIL,
   SYMBOL,
+  tcoFunction,
+  MalTCOFunction,
   VECTOR,
+  TCO_FUNCTION,
 } from "./types.js";
 import { Env } from "./env.js";
 import core from "./core.js";
@@ -51,8 +54,9 @@ const READ = async (): Promise<MalType> => {
 const EVAL = (ast: MalType, env: Env): MalType => {
   while (true) {
     switch (ast.type) {
-      case FUNCTION:
-        return ast;
+      // case FUNCTION:
+      // case TCO_FUNCTION:
+      //   return ast;
       case VECTOR: {
         if (ast.value.length === 0) {
           return ast;
@@ -133,9 +137,18 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             case FN:
               const fnList = ast.value as FnList;
               const args: MalList = fnList[1] as MalList;
-              return malFunction((..._: MalType[]) =>
-                EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
+              //TCO magic
+              return tcoFunction(
+                fnList[2],
+                fnList[1],
+                env,
+                malFunction((..._: MalType[]) =>
+                  EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
+                )
               );
+            // return malFunction((..._: MalType[]) =>
+            //   EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
+            // );
 
             default:
               const evaluatedList = eval_ast(ast, env);
@@ -143,6 +156,14 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               if (firstElement.type === FUNCTION) {
                 // case for (+ 1 2)
                 return firstElement.value(...evaluatedList.value.slice(1));
+              } else if (firstElement.type === TCO_FUNCTION) {
+                ast = firstElement.ast;
+                env = new Env(
+                  firstElement.env,
+                  firstElement.params.value as MalSymbol[],
+                  evaluatedList.value.slice(1)
+                );
+                continue;
               } else {
                 // case for things like (1, 2, 3, 4)
                 return evaluatedList;

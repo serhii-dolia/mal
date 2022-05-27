@@ -1,3 +1,5 @@
+import { Env } from "./env";
+
 export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
 export const LIST: unique symbol = Symbol("list");
@@ -5,6 +7,7 @@ export const VECTOR: unique symbol = Symbol("vector");
 export const HASHMAP: unique symbol = Symbol("hashmap");
 export const STRING: unique symbol = Symbol("string");
 export const FUNCTION: unique symbol = Symbol("function");
+export const TCO_FUNCTION: unique symbol = Symbol("tco_function");
 export const NIL: unique symbol = Symbol("nil");
 export const TRUE: unique symbol = Symbol("true");
 export const FALSE: unique symbol = Symbol("false");
@@ -19,7 +22,13 @@ export type MalAtom =
   | MalTrue
   | MalKeyword;
 
-export type MalType = MalAtom | MalList | MalVector | MalHashMap | MalFunction;
+export type MalType =
+  | MalAtom
+  | MalList
+  | MalVector
+  | MalHashMap
+  | MalTCOFunction
+  | MalFunction;
 
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
@@ -48,6 +57,19 @@ export const malHashMap = (value: MalHashMap["value"]): MalHashMap => ({
 
 export const malFunction = (value: MalFunction["value"]): MalFunction => ({
   type: FUNCTION,
+  value,
+});
+
+export const tcoFunction = (
+  ast: MalTCOFunction["ast"],
+  params: MalTCOFunction["params"],
+  env: MalTCOFunction["env"],
+  value: MalTCOFunction["value"]
+): MalTCOFunction => ({
+  type: TCO_FUNCTION,
+  params,
+  ast,
+  env,
   value,
 });
 
@@ -134,6 +156,14 @@ export type SPECIAL_SYMBOL =
 export interface MalFunction {
   type: typeof FUNCTION;
   value: MalFunctionPrimitive;
+}
+
+export interface MalTCOFunction {
+  type: typeof TCO_FUNCTION;
+  ast: MalType;
+  params: MalList;
+  env: Env;
+  value: MalFunction;
 }
 
 export type MalFunctionPrimitive = (...args: MalType[]) => MalType;

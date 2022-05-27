@@ -11,6 +11,7 @@ import {
   STRING,
   StringElement,
   SYMBOL,
+  TCO_FUNCTION,
   TRUE,
   VECTOR,
 } from "./types.js";
@@ -44,6 +45,7 @@ const toString = (_: MalType, print_readably: boolean): string => {
         .map((x) => `${toString(x[0], true)} ${toString(x[1], true)}`)
         .join(" ")}}`;
     case FUNCTION:
+    case TCO_FUNCTION:
       return "#<function>";
   }
 };
