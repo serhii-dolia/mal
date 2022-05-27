@@ -22,5 +22,4 @@ GRTAGS
 logs
 old
 tmp/
-impls/ts2/*.js
-impls/ts2/*.js.map
+.vscode/
