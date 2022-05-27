@@ -16,21 +16,14 @@ import {
   IF,
   IfList,
   LET,
-  //   evaluatableList,
-  //   EvaluatableList,
   LIST,
   MalAtom,
-  MalFunction,
   malFunction,
-  MalFunctionPrimitive,
   malHashMap,
   MalHashMap,
-  MalKeyword,
   MalList,
   malList,
   malNil,
-  MalNumber,
-  malNumber,
   MalSymbol,
   MalType,
   malVector,
@@ -38,9 +31,10 @@ import {
   NIL,
   SYMBOL,
   tcoFunction,
-  MalTCOFunction,
   VECTOR,
   TCO_FUNCTION,
+  EVAL_COMMAND,
+  EvalList,
 } from "./types.js";
 import { Env } from "./env.js";
 import core from "./core.js";
@@ -105,9 +99,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             }
             case DO: {
               const doListValues = ast.value as unknown as DoList;
-              const evaluatedList = malList(
-                doListValues.slice(1, -1).map<MalType>((el) => EVAL(el, env))
-              );
+              doListValues.slice(1, -1).map<MalType>((el) => EVAL(el, env));
               // TCO magic
               ast = doListValues[doListValues.length - 1];
               continue;
@@ -134,7 +126,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
                 // }
               }
             }
-            case FN:
+            case FN: {
               const fnList = ast.value as FnList;
               const args: MalList = fnList[1] as MalList;
               //TCO magic
@@ -146,6 +138,17 @@ const EVAL = (ast: MalType, env: Env): MalType => {
                   EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
                 )
               );
+            }
+            // case EVAL_COMMAND: {
+            //   const evalList = ast.value as EvalList;
+            //   return EVAL(evalList[1], env);
+            //   // return tcoFunction(
+            //   //   evalList[1],
+            //   //   malList([]),
+            //   //   env,
+            //   //   malFunction(() => EVAL(evalList[1], env))
+            //   // );
+            // }
             // return malFunction((..._: MalType[]) =>
             //   EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
             // );
@@ -212,6 +215,11 @@ const REPL_ENV = new Env(null);
 for (const [key, value] of core) {
   REPL_ENV.set(key, value);
 }
+
+REPL_ENV.set(
+  "eval",
+  malFunction((value: MalType) => EVAL(value, REPL_ENV))
+);
 
 PRINT(EVAL(read_str("(def! not (fn* (a) (if a false true)))"), REPL_ENV));
 

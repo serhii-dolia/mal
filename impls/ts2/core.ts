@@ -1,4 +1,5 @@
-import { pr_str } from "./printer.js";
+import { pr_str, toString } from "./printer.js";
+import { read_str } from "./reader.js";
 import {
   FALSE,
   LIST,
@@ -14,6 +15,7 @@ import {
   malNil,
   malNumber,
   MalNumber,
+  MalString,
   malSymbol,
   MalSymbol,
   malTrue,
@@ -153,6 +155,12 @@ map.set(
     ((arg1: MalNumber, arg2: MalNumber): MalBoolean =>
       arg1.value >= arg2.value ? malTrue() : malFalse()) as MalFunctionPrimitive
   )
+);
+
+map.set(
+  "read-string",
+  malFunction(((_: MalString) =>
+    read_str(toString(_, true))) as MalFunctionPrimitive)
 );
 
 export default map;

@@ -139,12 +139,14 @@ export type IfList =
   | [MalSymbol<typeof IF>, MalType, MalType, MalType]
   | [MalSymbol<typeof IF>, MalType, MalType];
 export type FnList = [MalSymbol<typeof FN>, MalList, MalType];
+export type EvalList = [MalSymbol<typeof EVAL_COMMAND>, MalType];
 
 export const DEF = "def!" as const;
 export const LET = "let*" as const;
 export const IF = "if" as const;
 export const DO = "do" as const;
 export const FN = "fn*" as const;
+export const EVAL_COMMAND = "eval" as const;
 
 export type SPECIAL_SYMBOL =
   | typeof DEF

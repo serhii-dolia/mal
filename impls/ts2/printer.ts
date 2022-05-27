@@ -20,7 +20,7 @@ export const pr_str = (_: MalType, print_readably: boolean) => {
   console.log(toString(_, print_readably));
 };
 
-const toString = (_: MalType, print_readably: boolean): string => {
+export const toString = (_: MalType, print_readably: boolean): string => {
   switch (_.type) {
     case NUMBER:
     case SYMBOL:
