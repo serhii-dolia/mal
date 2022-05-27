@@ -155,7 +155,7 @@ const determine_atom = (_: string): MalAtom => {
     return malKeyword(_ as MalKeyword["value"]);
   }
   if (_.startsWith('"')) {
-    return read_string(_);
+    return read_string_to_mal_string(_);
   }
   const number = parseInt(_);
   if (Number.isNaN(number)) {
@@ -175,7 +175,7 @@ const determine_atom = (_: string): MalAtom => {
 };
 
 //we know it starts with `"`
-const read_string = (_: string): MalString => {
+export const read_string_to_mal_string = (_: string): MalString => {
   if (_.length === 1) {
     throw new Error(EOF);
   }

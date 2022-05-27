@@ -32,7 +32,7 @@ export const toString = (_: MalType, print_readably: boolean): string => {
       if (!print_readably) {
         return `"${_.value}"`;
       } else {
-        return readable_string(_, print_readably);
+        return readable_string(_);
       }
     case NIL:
       return "nil";
@@ -50,12 +50,8 @@ export const toString = (_: MalType, print_readably: boolean): string => {
   }
 };
 
-const readable_string = (_: MalString, print_readably: boolean): string => {
-  if (!print_readably) {
-    return `${_.value.map((v) => v.value).join("")}`;
-  } else {
-    return `${_.value.map(readable_string_element).join("")}`;
-  }
+const readable_string = (_: MalString): string => {
+  return `${_.value.map(readable_string_element).join("")}`;
 };
 
 const readable_string_element = (_: StringElement): string => {

@@ -1,5 +1,6 @@
 import { pr_str, toString } from "./printer.js";
-import { read_str } from "./reader.js";
+import { read_str, read_string_to_mal_string } from "./reader.js";
+import * as fs from "node:fs";
 import {
   FALSE,
   LIST,
@@ -162,5 +163,25 @@ map.set(
   malFunction(((_: MalString) =>
     read_str(toString(_, true))) as MalFunctionPrimitive)
 );
+
+map.set(
+  "slurp",
+  malFunction(((fileName: MalString) => {
+    const unwrappedName = toString(fileName, true).slice(1, -1);
+    const fileContent = fs.readFileSync(unwrappedName, { encoding: "utf-8" });
+    return read_string_to_mal_string(`"${fileContent}"`);
+  }) as MalFunctionPrimitive)
+);
+
+// map.set(
+//   "pr-str",
+//   malFunction(((...args: MalString[]) => {
+//     if (args.length === 0) {
+//       return read_string('""');
+//     }
+//     const str = args.map((a) => `"${toString(a, true)}"`).join("");
+//     return read_string(str);
+//   }) as MalFunctionPrimitive)
+// );
 
 export default map;
