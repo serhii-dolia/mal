@@ -98,7 +98,7 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
           case DO: {
             const doListValues = ast.value as unknown as DoList;
             const evaluatedList = malList(
-              doListValues.slice(1).map<MalType>((el) => eval_ast(el, replEnv))
+              doListValues.slice(1).map<MalType>((el) => EVAL(el, replEnv))
             );
             return evaluatedList.value[evaluatedList.value.length - 1];
           }
