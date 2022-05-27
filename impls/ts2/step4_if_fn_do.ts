@@ -178,6 +178,7 @@ for (const [key, value] of core) {
   REPL_ENV.set(key, value);
 }
 
+PRINT(EVAL(read_str("(def! not (fn* (a) (if a false true)))"), REPL_ENV));
 const rep = async () => {
   while (true) {
     try {
