@@ -218,7 +218,7 @@ const start = async () => {
       await rep(READ);
     } catch (e: any) {
       console.log(e.message);
-      await rep(READ);
+      await start();
     }
   }
 };
@@ -243,5 +243,3 @@ if (process.argv.length > 2) {
 } else {
   start();
 }
-
-console.log("welp");
