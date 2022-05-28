@@ -1,7 +1,7 @@
 import {
   HashMapPair,
   KEYWORD,
-  MalAtom,
+  MalSingleType,
   malFalse,
   malHashMap,
   MalHashMap,
@@ -72,7 +72,9 @@ const tokenize = (_: string) => {
   ).filter((_) => _ !== "");
 };
 
-const read_form = (_: Reader): MalList | MalVector | MalHashMap | MalAtom => {
+const read_form = (
+  _: Reader
+): MalList | MalVector | MalHashMap | MalSingleType => {
   switch (_.peek()) {
     case LEFT_PAREN:
       return read_list(_, ")", malList);
@@ -148,9 +150,9 @@ const read_list = (
   return wrapper(values);
 };
 
-const read_atom = (_: Reader): MalAtom => determine_atom(_.peek());
+const read_atom = (_: Reader): MalSingleType => determine_atom(_.peek());
 
-const determine_atom = (_: string): MalAtom => {
+const determine_atom = (_: string): MalSingleType => {
   if (_.startsWith(":")) {
     return malKeyword(_ as MalKeyword["value"]);
   }

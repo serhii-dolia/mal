@@ -17,7 +17,7 @@ import {
   IfList,
   LET,
   LIST,
-  MalAtom,
+  MalSingleType,
   malFunction,
   malHashMap,
   MalHashMap,
@@ -174,7 +174,7 @@ const PRINT = (_: MalType) => {
 function eval_ast(ast: MalList, replEnv: Env): MalList;
 function eval_ast(ast: MalVector, replEnv: Env): MalVector;
 function eval_ast(ast: MalHashMap, replEnv: Env): MalHashMap;
-function eval_ast(ast: MalAtom, replEnv: Env): MalType;
+function eval_ast(ast: MalSingleType, replEnv: Env): MalType;
 function eval_ast(ast: MalType, replEnv: Env): MalType;
 function eval_ast(ast: MalType, replEnv: Env): MalType {
   switch (ast.type) {

@@ -9,7 +9,7 @@ import {
   // evaluatableList,
   // EvaluatableList,
   LIST,
-  MalAtom,
+  MalSingleType,
   MalFunction,
   malFunction,
   MalFunctionPrimitive,

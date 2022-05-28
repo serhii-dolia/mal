@@ -13,7 +13,7 @@ export const TRUE: unique symbol = Symbol("true");
 export const FALSE: unique symbol = Symbol("false");
 export const KEYWORD: unique symbol = Symbol("keyword");
 
-export type MalAtom =
+export type MalSingleType =
   | MalNumber
   | MalSymbol
   | MalNil
@@ -23,7 +23,7 @@ export type MalAtom =
   | MalKeyword;
 
 export type MalType =
-  | MalAtom
+  | MalSingleType
   | MalList
   | MalVector
   | MalHashMap
