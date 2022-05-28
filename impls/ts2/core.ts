@@ -22,8 +22,10 @@ import {
   MalSymbol,
   malTrue,
   MalType,
+  MalVector,
   NIL,
   STRING,
+  VECTOR,
 } from "./types.js";
 
 const map = new Map<string, MalFunction>();
@@ -99,10 +101,11 @@ map.set(
 map.set(
   "=",
   malFunction(function compare(arg1: MalType, arg2: MalType): MalBoolean {
-    if (arg1.type !== arg2.type) {
-      return malFalse();
-    } else if (arg1.type === LIST) {
-      if (arg1.value.length !== (arg2 as MalList).value.length) {
+    const compare_list_or_vector = (
+      arg1: MalList | MalVector,
+      arg2: MalList | MalVector
+    ): MalBoolean => {
+      if (arg1.value.length !== arg2.value.length) {
         return malFalse();
       } else {
         for (let i = 0; i < arg1.value.length; i++) {
@@ -114,6 +117,17 @@ map.set(
         }
         return malTrue();
       }
+    };
+    if (arg1.type !== arg2.type) {
+      if (
+        (arg1.type === LIST && arg2.type === VECTOR) ||
+        (arg1.type === VECTOR && arg2.type === LIST)
+      ) {
+        return compare_list_or_vector(arg1, arg2);
+      }
+      return malFalse();
+    } else if (arg1.type === LIST || arg1.type === VECTOR) {
+      return compare_list_or_vector(arg1, arg2 as MalList | MalVector);
     } else if (arg1.type === STRING) {
       return malBoolean(pr_str(arg1, true) === pr_str(arg2 as MalString, true));
     } else {
