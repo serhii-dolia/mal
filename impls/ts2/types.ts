@@ -12,6 +12,7 @@ export const NIL: unique symbol = Symbol("nil");
 export const TRUE: unique symbol = Symbol("true");
 export const FALSE: unique symbol = Symbol("false");
 export const KEYWORD: unique symbol = Symbol("keyword");
+export const ATOM: unique symbol = Symbol("atom");
 
 export type MalSingleType =
   | MalNumber
@@ -28,7 +29,8 @@ export type MalType =
   | MalVector
   | MalHashMap
   | MalTCOFunction
-  | MalFunction;
+  | MalFunction
+  | MalAtom;
 
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
@@ -102,6 +104,11 @@ export const malBoolean = (value: MalBoolean["value"]): MalBoolean => {
 
 export const malKeyword = (value: MalKeyword["value"]): MalKeyword => ({
   type: KEYWORD,
+  value,
+});
+
+export const malAtom = (value: MalAtom["value"]): MalAtom => ({
+  type: ATOM,
   value,
 });
 
@@ -217,4 +224,9 @@ export type MalBoolean = MalTrue | MalFalse;
 export type MalKeyword = {
   type: typeof KEYWORD;
   value: `:${string}`;
+};
+
+export type MalAtom = {
+  type: typeof ATOM;
+  value: MalType;
 };

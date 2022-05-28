@@ -2,8 +2,11 @@ import { pr_str } from "./printer.js";
 import { read_str, read_string_to_mal_string } from "./reader.js";
 import * as fs from "node:fs";
 import {
+  ATOM,
   FALSE,
   LIST,
+  MalAtom,
+  malAtom,
   MalBoolean,
   malBoolean,
   malFalse,
@@ -16,10 +19,12 @@ import {
   malNil,
   malNumber,
   MalNumber,
+  MalSingleType,
   malString,
   MalString,
   malSymbol,
   MalSymbol,
+  MalTCOFunction,
   malTrue,
   MalType,
   MalVector,
@@ -231,6 +236,37 @@ map.set(
     // I don't understand why tests are written this way. There's NOWHERE a mention of escaping that I have to do somewhere. But the tests for pr-str are hinting towards it
     const str = `"${args.map((a) => pr_str(a, false)).join("")}"`;
     return read_string_to_mal_string(escape_str(str));
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "atom",
+  malFunction((arg: MalType) => malAtom(arg))
+);
+
+map.set(
+  "atom?",
+  malFunction((arg: MalType) => malBoolean(arg.type === ATOM))
+);
+
+map.set(
+  "deref",
+  malFunction(((arg: MalAtom) => arg.value) as MalFunctionPrimitive)
+);
+
+map.set(
+  "reset!",
+  malFunction(((atom: MalAtom, value: MalType) => {
+    atom.value = value;
+    return value;
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "swap!",
+  malFunction(((atom: MalAtom, f: MalTCOFunction, ...args: MalType[]) => {
+    atom.value = f.value.value(atom.value, ...args);
+    return atom.value;
   }) as MalFunctionPrimitive)
 );
 

@@ -201,6 +201,8 @@ export const read_string_to_mal_string = (_: string): MalString => {
         i += 1;
         continue;
       }
+    } else if (_[i] === "\n") {
+      primitives.push({ type: "escapedNewLine", value: "n" });
     } else {
       primitives.push({ type: "normalStringElement", value: _[i] });
     }
