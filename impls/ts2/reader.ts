@@ -179,6 +179,7 @@ export const read_string_to_mal_string = (_: string): MalString => {
   if (_.length === 1) {
     throw new Error(EOF);
   }
+
   const primitives: StringElement[] = [];
   //we know that 0th element is " and last is supposed to be "
   for (let i = 0; i < _.length; i++) {
@@ -202,13 +203,16 @@ export const read_string_to_mal_string = (_: string): MalString => {
       primitives.push({ type: "normalStringElement", value: _[i] });
     }
   }
-
-  const lastSymbol = primitives[primitives.length - 1];
-  if (
-    lastSymbol.type !== "normalStringElement" ||
-    lastSymbol.value !== DoubleQuote
-  ) {
+  const last = primitives[primitives.length - 1];
+  if (last.type !== "normalStringElement" || last.value !== '"') {
     throw new Error(EOF);
   }
-  return malString(primitives);
+  // const lastSymbol = primitives[primitives.length - 1];
+  // if (
+  //   lastSymbol.type !== "normalStringElement" ||
+  //   lastSymbol.value !== DoubleQuote
+  // ) {
+  //   throw new Error(EOF);
+  // }
+  return malString(_);
 };

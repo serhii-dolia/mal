@@ -177,7 +177,7 @@ export type MalNil = {
 
 export type MalString = {
   type: typeof STRING;
-  value: StringElement[];
+  value: string;
 };
 
 export type StringElement =

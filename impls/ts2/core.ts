@@ -70,8 +70,12 @@ map.set(
 
 map.set(
   "prn",
-  malFunction((_: MalType) => {
-    console.log(pr_str(_, true));
+  malFunction((..._: MalType[]) => {
+    if (_.length === 0) {
+      console.log("");
+      return malNil();
+    }
+    console.log(_.map((val) => pr_str(val, true)).join(" "));
     return malNil();
   })
 );
