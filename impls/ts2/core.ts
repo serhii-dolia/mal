@@ -171,7 +171,7 @@ map.set(
 map.set(
   "read-string",
   malFunction(((_: MalString) =>
-    read_str(pr_str(_, true))) as MalFunctionPrimitive)
+    read_str(pr_str(_, false))) as MalFunctionPrimitive)
 );
 
 map.set(
