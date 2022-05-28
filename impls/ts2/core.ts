@@ -16,6 +16,7 @@ import {
   malNil,
   malNumber,
   MalNumber,
+  malString,
   MalString,
   malSymbol,
   MalSymbol,
@@ -67,18 +68,6 @@ map.set(
         return malNumber(acc.value / curr.value);
       }
     }, malNumber(0))) as MalFunctionPrimitive)
-);
-
-map.set(
-  "prn",
-  malFunction((..._: MalType[]) => {
-    if (_.length === 0) {
-      console.log("");
-      return malNil();
-    }
-    console.log(_.map((val) => pr_str(val, true)).join(" "));
-    return malNil();
-  })
 );
 
 map.set(
@@ -181,8 +170,20 @@ map.set(
 );
 
 map.set(
+  "prn",
+  malFunction((..._: MalType[]) => {
+    if (_.length === 0) {
+      console.log("");
+      return malNil();
+    }
+    console.log(_.map((val) => pr_str(val, true)).join(" "));
+    return malNil();
+  })
+);
+
+map.set(
   "pr-str",
-  malFunction(((...args: MalString[]) => {
+  malFunction(((...args: MalType[]) => {
     if (args.length === 0) {
       return read_string_to_mal_string('""');
     }
@@ -194,10 +195,28 @@ map.set(
 );
 
 map.set(
+  "println",
+  malFunction(((...args: MalType[]) => {
+    if (args.length === 0) {
+      console.log("");
+      return malNil();
+    }
+    // here we don't need to have additional double-quotes at the beginning and at the end, like in pr-str
+    console.log(`${args.map((a) => pr_str(a, false)).join(" ")}`);
+    return malNil();
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
   "str",
   malFunction(((...args: MalString[]) => {
-    const str = args.map((a) => `"${pr_str(a, false)}"`).join("");
-    return read_string_to_mal_string(str);
+    if (args.length === 0) {
+      return read_string_to_mal_string(`""`);
+    }
+    // I have no goddamn idea what MAL creator wants from me with the string stuff.
+    // I don't understand why tests are written this way. There's NOWHERE a mention of escaping that I have to do somewhere. But the tests for pr-str are hinting towards it
+    const str = `"${args.map((a) => pr_str(a, false)).join("")}"`;
+    return read_string_to_mal_string(escape_str(str));
   }) as MalFunctionPrimitive)
 );
 

@@ -47,11 +47,25 @@ export const pr_str = (_: MalType, print_readably: boolean): string => {
 };
 
 const unreadable_string = (_: MalString): string => {
-  return _.value.map((el) => el.value).join("");
+  // we know that they start with " and end with ". We don't need that printed
+  return _.value.slice(1, -1).map(unreadable_string_element).join("");
 };
 
 const readable_string = (_: MalString): string => {
   return _.value.map(readable_string_element).join("");
+};
+
+const unreadable_string_element = (_: StringElement): string => {
+  switch (_.type) {
+    case "normalStringElement":
+      return _.value;
+    case "escapedDoubleQuote":
+      return '"';
+    case "escapedBackSlash":
+      return "\\";
+    case "escapedNewLine":
+      return "\n";
+  }
 };
 
 const readable_string_element = (_: StringElement): string => {
