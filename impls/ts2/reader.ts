@@ -214,5 +214,5 @@ export const read_string_to_mal_string = (_: string): MalString => {
   // ) {
   //   throw new Error(EOF);
   // }
-  return malString(_);
+  return malString(primitives);
 };

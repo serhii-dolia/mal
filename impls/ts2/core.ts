@@ -22,6 +22,7 @@ import {
   malTrue,
   MalType,
   NIL,
+  STRING,
 } from "./types.js";
 
 const map = new Map<string, MalFunction>();
@@ -124,6 +125,8 @@ map.set(
         }
         return malTrue();
       }
+    } else if (arg1.type === STRING) {
+      return malBoolean(pr_str(arg1, true) === pr_str(arg2 as MalString, true));
     } else {
       return malBoolean(arg1.value === arg2.value);
     }
@@ -183,8 +186,10 @@ map.set(
     if (args.length === 0) {
       return read_string_to_mal_string('""');
     }
-    const str = args.map((a) => `"${pr_str(a, true)}"`).join("");
-    return read_string_to_mal_string(str);
+    const str = `"${args.map((a) => `${pr_str(a, true)}`).join(" ")}"`;
+    // I have no goddamn idea what MAL creator wants from me with the string stuff.
+    // I don't understand why tests are written this way. There's NOWHERE a mention of escaping that I have to do somewhere. But the tests for pr-str are hinting towards it
+    return read_string_to_mal_string(escape_str(str));
   }) as MalFunctionPrimitive)
 );
 
@@ -195,5 +200,26 @@ map.set(
     return read_string_to_mal_string(str);
   }) as MalFunctionPrimitive)
 );
+
+const escape_str = (_: string): string => {
+  const elements = _.slice(1, -1).split("");
+  return `"${elements
+    .map((val) => {
+      switch (val) {
+        case '"': {
+          return '\\"';
+        }
+        case "\\": {
+          return "\\\\";
+        }
+        case "\n": {
+          return "\\n";
+        }
+        default:
+          return val;
+      }
+    })
+    .join("")}"`;
+};
 
 export default map;

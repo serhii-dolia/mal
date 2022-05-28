@@ -47,11 +47,11 @@ export const pr_str = (_: MalType, print_readably: boolean): string => {
 };
 
 const unreadable_string = (_: MalString): string => {
-  return _.value;
+  return _.value.map((el) => el.value).join("");
 };
 
 const readable_string = (_: MalString): string => {
-  return _.value;
+  return _.value.map(readable_string_element).join("");
 };
 
 const readable_string_element = (_: StringElement): string => {
