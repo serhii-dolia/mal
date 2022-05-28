@@ -208,25 +208,40 @@ REPL_ENV.set(
   malFunction((value: MalType) => EVAL(value, REPL_ENV))
 );
 
-PRINT(EVAL(read_str("(def! not (fn* (a) (if a false true)))"), REPL_ENV));
-PRINT(
-  EVAL(
-    read_str(
-      `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
-    ),
-    REPL_ENV
-  )
-);
+const rep = async (read: () => Promise<MalType>) => {
+  PRINT(EVAL(await read(), REPL_ENV));
+};
 
-const rep = async () => {
+const start = async () => {
   while (true) {
     try {
-      PRINT(EVAL(await READ(), REPL_ENV));
+      await rep(READ);
     } catch (e: any) {
       console.log(e.message);
-      await rep();
+      await rep(READ);
     }
   }
 };
 
-rep();
+await rep(() =>
+  Promise.resolve(read_str("(def! not (fn* (a) (if a false true)))"))
+);
+await rep(() =>
+  Promise.resolve(
+    read_str(
+      `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
+    )
+  )
+);
+
+if (process.argv.length > 2) {
+  const paths = process.argv.slice(2);
+  for (const path of paths) {
+    await rep(() => Promise.resolve(read_str(`(load-file "${path}")`)));
+  }
+  process.exit(0);
+} else {
+  start();
+}
+
+console.log("welp");
