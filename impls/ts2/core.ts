@@ -30,6 +30,7 @@ import {
   MalVector,
   NIL,
   STRING,
+  TCO_FUNCTION,
   VECTOR,
 } from "./types.js";
 
@@ -264,8 +265,16 @@ map.set(
 
 map.set(
   "swap!",
-  malFunction(((atom: MalAtom, f: MalTCOFunction, ...args: MalType[]) => {
-    atom.value = f.value.value(atom.value, ...args);
+  malFunction(((
+    atom: MalAtom,
+    f: MalTCOFunction | MalFunction,
+    ...args: MalType[]
+  ) => {
+    if (f.type === TCO_FUNCTION) {
+      atom.value = f.value.value(atom.value, ...args);
+    } else {
+      atom.value = f.value(atom.value, ...args);
+    }
     return atom.value;
   }) as MalFunctionPrimitive)
 );

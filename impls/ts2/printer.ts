@@ -32,7 +32,7 @@ export const pr_str = (_: MalType, print_readably: boolean): string => {
         return readable_string(_);
       }
     case ATOM:
-      return `@${pr_str(_.value, print_readably)}`;
+      return `(atom ${pr_str(_.value, print_readably)})`;
     case NIL:
       return "nil";
     case LIST:
