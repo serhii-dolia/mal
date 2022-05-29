@@ -1,4 +1,4 @@
-import { MalSymbol, MalType } from "./types";
+import { malList, MalSymbol, MalType } from "./types.js";
 
 export class Env {
   private data: { [key: string]: MalType } = {};
@@ -8,11 +8,20 @@ export class Env {
     binds: MalSymbol[] = [],
     exprs: MalType[] = []
   ) {
-    if (binds.length !== exprs.length) {
-      throw new Error("binds and expressions should be same length");
-    }
-    for (let i = 0; i < binds.length; i++) {
-      this.data[binds[i].value] = exprs[i];
+    const ampersandIndex = binds.findIndex((b) => b && b.value === "&");
+    if (ampersandIndex === -1) {
+      for (let i = 0; i < binds.length; i++) {
+        this.data[binds[i].value] = exprs[i];
+      }
+    } else if (ampersandIndex === binds.length - 1) {
+      throw new Error("wrong variadic type definition");
+    } else {
+      for (let i = 0; i < ampersandIndex; i++) {
+        this.data[binds[i].value] = exprs[i];
+      }
+      this.data[binds[ampersandIndex + 1].value] = malList(
+        exprs.slice(ampersandIndex)
+      );
     }
   }
 
