@@ -33,8 +33,6 @@ import {
   tcoFunction,
   VECTOR,
   TCO_FUNCTION,
-  EVAL_COMMAND,
-  EvalList,
   MalFunction,
   MalFunctionPrimitive,
   malSymbol,

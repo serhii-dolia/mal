@@ -90,9 +90,16 @@ const read_form = (
       return read_unquote(_);
     case "~@":
       return read_splice_unquote(_);
+    case "@":
+      return read_deref(_);
     default:
       return read_atom(_);
   }
+};
+
+const read_deref = (_: Reader): MalList => {
+  _.next();
+  return malList([malSymbol("deref"), read_form(_)]);
 };
 
 const read_quote = (_: Reader): MalList => {
@@ -185,6 +192,10 @@ const determine_atom = (_: string): MalSingleType => {
   }
   if (_.startsWith('"')) {
     return read_string_to_mal_string(_);
+  }
+  if (_.startsWith(";")) {
+    //handling comments somehow. TODO: improve
+    return malNil();
   }
   const number = parseInt(_);
   if (Number.isNaN(number)) {

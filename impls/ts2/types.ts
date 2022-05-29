@@ -66,13 +66,15 @@ export const tcoFunction = (
   ast: MalTCOFunction["ast"],
   params: MalTCOFunction["params"],
   env: MalTCOFunction["env"],
-  value: MalTCOFunction["value"]
+  value: MalTCOFunction["value"],
+  isMacro: boolean = false
 ): MalTCOFunction => ({
   type: TCO_FUNCTION,
   params,
   ast,
   env,
   value,
+  isMacro,
 });
 
 export const malNil = (): MalNil => ({
@@ -146,14 +148,13 @@ export type IfList =
   | [MalSymbol<typeof IF>, MalType, MalType, MalType]
   | [MalSymbol<typeof IF>, MalType, MalType];
 export type FnList = [MalSymbol<typeof FN>, MalList, MalType];
-export type EvalList = [MalSymbol<typeof EVAL_COMMAND>, MalType];
 
 export const DEF = "def!" as const;
 export const LET = "let*" as const;
 export const IF = "if" as const;
 export const DO = "do" as const;
 export const FN = "fn*" as const;
-export const EVAL_COMMAND = "eval" as const;
+export const DEF_MACRO = "defmacro!" as const;
 
 export type SPECIAL_SYMBOL =
   | typeof DEF
@@ -173,6 +174,7 @@ export interface MalTCOFunction {
   params: MalList;
   env: Env;
   value: MalFunction;
+  isMacro: boolean;
 }
 
 export type MalFunctionPrimitive = (...args: MalType[]) => MalType;
