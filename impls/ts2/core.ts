@@ -314,4 +314,13 @@ const escape_str = (_: string): string => {
     .join("")}"`;
 };
 
+// ith list element
+export const ile = (_: MalList, i: number = 0) => {
+  const result = _.value[i];
+  if (!result) {
+    return malNil();
+  }
+  return _.value[i];
+};
+
 export default map;

@@ -35,9 +35,12 @@ import {
   TCO_FUNCTION,
   EVAL_COMMAND,
   EvalList,
+  MalFunction,
+  MalFunctionPrimitive,
+  malSymbol,
 } from "./types.js";
 import { Env } from "./env.js";
-import core from "./core.js";
+import core, { ile } from "./core.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -140,11 +143,15 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               );
             }
             default:
-              if (
-                ast.value[0].type === SYMBOL &&
-                ast.value[0].value === "quote"
-              ) {
-                return ast.value[1];
+              if (ast.value[0].value === "quote") {
+                return (REPL_ENV.get("quote") as MalFunction).value(
+                  ast.value[1]
+                );
+              } else if (ast.value[0].value === "quasiquote") {
+                ast = (REPL_ENV.get("quasiquote") as MalFunction).value(
+                  ast.value[1]
+                );
+                continue;
               }
               const evaluatedList = eval_ast(ast, env);
               const firstElement = evaluatedList.value[0];
@@ -213,6 +220,35 @@ REPL_ENV.set(
 REPL_ENV.set(
   "quote",
   malFunction((value: MalType) => value)
+);
+
+REPL_ENV.set(
+  "quasiquote",
+  malFunction(function qq(_: MalType) {
+    if (_.type === LIST) {
+      if (_.value.length === 0) {
+        return malList([]);
+      }
+      if (ile(_).value === "unquote") {
+        return ile(_, 1);
+      } else {
+        let list = malList([]);
+        for (let i = _.value.length - 1; i >= 0; i--) {
+          const elt = ile(_, i);
+          if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
+            list = malList([malSymbol("concat"), ile(elt, 1), list]);
+          } else {
+            list = malList([malSymbol("cons"), qq(elt), list]);
+          }
+        }
+        return list;
+      }
+    } else if (_.type === HASHMAP || _.type === SYMBOL) {
+      return malList([malSymbol("quote"), _]);
+    } else {
+      return _;
+    }
+  } as MalFunctionPrimitive)
 );
 
 const rep = async (read: () => Promise<MalType>) => {
