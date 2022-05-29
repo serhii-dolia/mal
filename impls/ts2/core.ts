@@ -279,6 +279,20 @@ map.set(
   }) as MalFunctionPrimitive)
 );
 
+map.set(
+  "cons",
+  malFunction(((a: MalType, b: MalList) => {
+    return malList([a, ...b.value]);
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "concat",
+  malFunction(((...args: MalList[]) => {
+    return malList(args.flatMap((_) => _.value));
+  }) as MalFunctionPrimitive)
+);
+
 const escape_str = (_: string): string => {
   const elements = _.slice(1, -1).split("");
   return `"${elements
