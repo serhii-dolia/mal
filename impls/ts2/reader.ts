@@ -82,11 +82,38 @@ const read_form = (
       return read_list(_, "]", malVector);
     case LEFT_FIGURE_BRACKET:
       return read_hashmap(_);
+    case "'":
+      return read_quote(_);
+    case "`":
+      return read_quasi_quote(_);
+    case "~":
+      return read_unquote(_);
+    case "~@":
+      return read_splice_unquote(_);
     default:
       return read_atom(_);
   }
 };
 
+const read_quote = (_: Reader): MalList => {
+  _.next();
+  return malList([malSymbol("quote"), read_form(_)]);
+};
+
+const read_quasi_quote = (_: Reader): MalList => {
+  _.next();
+  return malList([malSymbol("quasiquote"), read_form(_)]);
+};
+
+const read_unquote = (_: Reader): MalList => {
+  _.next();
+  return malList([malSymbol("unquote"), read_form(_)]);
+};
+
+const read_splice_unquote = (_: Reader): MalList => {
+  _.next();
+  return malList([malSymbol("splice-unquote"), read_form(_)]);
+};
 const read_hashmap = (_: Reader): MalHashMap => {
   const values: HashMapPair[] = [];
   while (true) {

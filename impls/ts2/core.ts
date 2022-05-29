@@ -27,6 +27,7 @@ import {
   MalTCOFunction,
   malTrue,
   MalType,
+  malVector,
   MalVector,
   NIL,
   STRING,
@@ -281,15 +282,25 @@ map.set(
 
 map.set(
   "cons",
-  malFunction(((a: MalType, b: MalList) => {
+  malFunction(((a: MalType, b: MalList | MalVector) => {
     return malList([a, ...b.value]);
   }) as MalFunctionPrimitive)
 );
 
 map.set(
   "concat",
-  malFunction(((...args: MalList[]) => {
+  malFunction(((...args: (MalList | MalVector)[]) => {
     return malList(args.flatMap((_) => _.value));
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "vec",
+  malFunction(((_: MalList | MalVector) => {
+    if (_.type === VECTOR) {
+      return _;
+    }
+    return malVector(_.value);
   }) as MalFunctionPrimitive)
 );
 
@@ -315,7 +326,7 @@ const escape_str = (_: string): string => {
 };
 
 // ith list element
-export const ile = (_: MalList, i: number = 0) => {
+export const ile = (_: MalList | MalVector, i: number = 0) => {
   const result = _.value[i];
   if (!result) {
     return malNil();

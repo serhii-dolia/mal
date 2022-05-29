@@ -225,6 +225,21 @@ REPL_ENV.set(
 REPL_ENV.set(
   "quasiquote",
   malFunction(function qq(_: MalType) {
+    function processNormalList(arg: MalList | MalVector) {
+      let list = malList([]);
+      for (let i = arg.value.length - 1; i >= 0; i--) {
+        const elt = ile(arg, i);
+        if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
+          list = malList([malSymbol("concat"), ile(elt, 1), list]);
+        } else {
+          list = malList([malSymbol("cons"), qq(elt), list]);
+        }
+      }
+      return list;
+    }
+    if (_.type === VECTOR) {
+      return malList([malSymbol("vec"), processNormalList(_)]);
+    }
     if (_.type === LIST) {
       if (_.value.length === 0) {
         return malList([]);
@@ -232,16 +247,17 @@ REPL_ENV.set(
       if (ile(_).value === "unquote") {
         return ile(_, 1);
       } else {
-        let list = malList([]);
-        for (let i = _.value.length - 1; i >= 0; i--) {
-          const elt = ile(_, i);
-          if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
-            list = malList([malSymbol("concat"), ile(elt, 1), list]);
-          } else {
-            list = malList([malSymbol("cons"), qq(elt), list]);
-          }
-        }
-        return list;
+        return processNormalList(_);
+        // let list = malList([]);
+        // for (let i = _.value.length - 1; i >= 0; i--) {
+        //   const elt = ile(_, i);
+        //   if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
+        //     list = malList([malSymbol("concat"), ile(elt, 1), list]);
+        //   } else {
+        //     list = malList([malSymbol("cons"), qq(elt), list]);
+        //   }
+        // }
+        // return list;
       }
     } else if (_.type === HASHMAP || _.type === SYMBOL) {
       return malList([malSymbol("quote"), _]);
