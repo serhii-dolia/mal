@@ -432,6 +432,14 @@ await rep(() =>
   )
 );
 
+await rep(() =>
+  Promise.resolve(
+    read_str(
+      "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))"
+    )
+  )
+);
+
 if (process.argv.length > 2) {
   const paths = process.argv.slice(2);
   for (const path of paths) {

@@ -304,6 +304,37 @@ map.set(
   }) as MalFunctionPrimitive)
 );
 
+map.set(
+  "nth",
+  malFunction(((_: MalList | MalVector, i: MalNumber) => {
+    const value = _.value[i.value];
+    if (!value) {
+      throw new Error("no nth value");
+    }
+    return value;
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "first",
+  malFunction(((_: MalList | MalVector | MalNil) => {
+    if (_.type === NIL || _.value.length === 0) {
+      return malNil();
+    }
+    return _.value[0];
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "rest",
+  malFunction(((_: MalList | MalVector | MalNil) => {
+    if (_.type === NIL || _.value.length <= 1) {
+      return malList([]);
+    }
+    return malList(_.value.slice(1));
+  }) as MalFunctionPrimitive)
+);
+
 const escape_str = (_: string): string => {
   const elements = _.slice(1, -1).split("");
   return `"${elements
