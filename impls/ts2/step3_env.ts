@@ -28,6 +28,7 @@ import {
   VECTOR,
 } from "./types.js";
 import { Env } from "./env.js";
+import { MalError } from "./mal_error.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -68,13 +69,13 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
             const bindingList = ast.value[1] as MalList;
             const expressionToEvaluate = ast.value[2];
             if (bindingList.value.length % 2 === 1) {
-              throw new Error("EOF");
+              throw new MalError("EOF");
             }
             for (let i = 0; i < bindingList.value.length; i += 2) {
               const key = bindingList.value[i];
               const value = bindingList.value[i + 1];
               if (key.type !== SYMBOL) {
-                throw new Error("Must be symbol for binding");
+                throw new MalError("Must be symbol for binding");
               }
               letEnv.set(key.value, EVAL(value, letEnv));
             }

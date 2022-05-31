@@ -4,6 +4,7 @@ import * as fs from "node:fs";
 import {
   ATOM,
   FALSE,
+  FUNCTION,
   LIST,
   MalAtom,
   malAtom,
@@ -31,16 +32,12 @@ import {
   MalVector,
   NIL,
   STRING,
+  SYMBOL,
   TCO_FUNCTION,
+  TRUE,
   VECTOR,
 } from "./types.js";
-
-class MalError extends Error {
-  constructor(arg: MalType) {
-    super();
-    this.message = pr_str(arg, true);
-  }
-}
+import { MalError } from "./mal_error.js";
 
 const map = new Map<string, MalFunction>();
 
@@ -316,7 +313,7 @@ map.set(
   malFunction(((_: MalList | MalVector, i: MalNumber) => {
     const value = _.value[i.value];
     if (!value) {
-      throw new Error("no nth value");
+      throw new MalError("no nth value");
     }
     return value;
   }) as MalFunctionPrimitive)
@@ -347,6 +344,66 @@ map.set(
   malFunction(((_: MalType) => {
     throw new MalError(_);
   }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "apply",
+  malFunction(((func: MalTCOFunction | MalFunction, ...args: MalType[]) => {
+    if (
+      args[args.length - 1].type !== LIST &&
+      args[args.length - 1].type !== VECTOR
+    ) {
+      throw new MalError("not a list for apply!");
+    }
+    const lastList = args[args.length - 1] as MalList | MalVector;
+    if (func.type === FUNCTION) {
+      return func.value(...args.slice(0, -1), ...lastList.value);
+    } else {
+      return func.value.value(...args.slice(0, -1), ...lastList.value);
+    }
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "map",
+  malFunction(((
+    func: MalTCOFunction | MalFunction,
+    list: MalList | MalVector
+  ) => {
+    if (func.type === FUNCTION) {
+      return malList(list.value.map((t) => func.value(t)));
+    } else {
+      return malList(list.value.map((t) => func.value.value(t)));
+    }
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "nil?",
+  malFunction((_: MalType) => {
+    return _.type === NIL ? malTrue() : malFalse();
+  })
+);
+
+map.set(
+  "true?",
+  malFunction((_: MalType) => {
+    return _.type === TRUE ? malTrue() : malFalse();
+  })
+);
+
+map.set(
+  "false?",
+  malFunction((_: MalType) => {
+    return _.type === FALSE ? malTrue() : malFalse();
+  })
+);
+
+map.set(
+  "symbol?",
+  malFunction((_: MalType) => {
+    return _.type === SYMBOL ? malTrue() : malFalse();
+  })
 );
 
 const escape_str = (_: string): string => {

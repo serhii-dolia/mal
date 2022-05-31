@@ -1,3 +1,4 @@
+import { MalError } from "./mal_error.js";
 import { malList, MalSymbol, MalType } from "./types.js";
 
 export class Env {
@@ -14,7 +15,7 @@ export class Env {
         this.data[binds[i].value] = exprs[i];
       }
     } else if (ampersandIndex === binds.length - 1) {
-      throw new Error("wrong variadic type definition");
+      throw new EvalError("wrong variadic type definition");
     } else {
       for (let i = 0; i < ampersandIndex; i++) {
         this.data[binds[i].value] = exprs[i];
@@ -42,7 +43,7 @@ export class Env {
   get(symbol: string): MalType {
     const env = this.find(symbol);
     if (!env) {
-      throw new Error(`${symbol} not found`);
+      throw new MalError(`${symbol} not found`);
     }
     return env.data[symbol];
   }

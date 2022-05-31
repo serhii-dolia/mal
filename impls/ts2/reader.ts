@@ -1,3 +1,4 @@
+import { MalError } from "./mal_error.js";
 import {
   HashMapPair,
   KEYWORD,
@@ -61,7 +62,7 @@ export const read_str = (_: string) => {
   //   if (_[i] === ")") rightParensCount++;
   // }
   // if (leftParensCount !== rightParensCount) {
-  //   throw new Error("Parents are not matching!");
+  //   throw new MalError("Parents are not matching!");
   // }
   return read_form(new Reader(tokenize(_)));
 };
@@ -137,23 +138,23 @@ const read_hashmap = (_: Reader): MalHashMap => {
 const read_next_hasmap_pair = (_: Reader): HashMapPair | null => {
   let keySymbol = _.next();
   if (keySymbol === EOF) {
-    throw new Error(EOF);
+    throw new MalError(EOF);
   }
   let keyValue = read_form(_);
   if (keyValue.value === "}") {
     return null;
   }
   if (![KEYWORD, STRING].includes(keyValue.type)) {
-    throw new Error("Wrong hashmap key type");
+    throw new MalError("Wrong hashmap key type");
   }
 
   let valueSymbol = _.next();
   if (valueSymbol === EOF) {
-    throw new Error(EOF);
+    throw new MalError(EOF);
   }
   let valueValue = read_form(_);
   if (valueValue.value === "}") {
-    throw new Error(EOF);
+    throw new MalError(EOF);
   }
   return [keyValue as MalKeyword | MalString, valueValue];
 };
@@ -173,7 +174,7 @@ const read_list = (
   while (currentValue.value !== closingValue) {
     currentSymbol = _.next();
     if (currentSymbol === EOF) {
-      throw new Error(EOF);
+      throw new MalError(EOF);
     }
     currentValue = read_form(_);
     if (currentValue.value === closingValue) {
@@ -217,7 +218,7 @@ const determine_atom = (_: string): MalSingleType => {
 //we know it starts with `"`
 export const read_string_to_mal_string = (_: `"${string}`): MalString => {
   if (_.length === 1) {
-    throw new Error(EOF);
+    throw new MalError(EOF);
   }
 
   const primitives: StringElement[] = [];
@@ -247,14 +248,14 @@ export const read_string_to_mal_string = (_: `"${string}`): MalString => {
   }
   const last = primitives[primitives.length - 1];
   if (last.type !== "normalStringElement" || last.value !== '"') {
-    throw new Error(EOF);
+    throw new MalError(EOF);
   }
   // const lastSymbol = primitives[primitives.length - 1];
   // if (
   //   lastSymbol.type !== "normalStringElement" ||
   //   lastSymbol.value !== DoubleQuote
   // ) {
-  //   throw new Error(EOF);
+  //   throw new MalError(EOF);
   // }
   return malString(primitives);
 };

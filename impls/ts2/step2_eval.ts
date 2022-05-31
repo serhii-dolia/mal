@@ -26,7 +26,7 @@ import {
   SYMBOL,
   VECTOR,
 } from "./types.js";
-import { Env } from "./env.js";
+import { MalError } from "./mal_error.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -73,7 +73,7 @@ function eval_ast(ast: MalType, replEnv: MalEnv): MalType {
       if (replEnv[ast.value]) {
         return replEnv[ast.value];
       } else {
-        throw new Error("No value!");
+        throw new MalError("No value!");
       }
     }
     case LIST: {
