@@ -210,6 +210,11 @@ const EVAL = (ast: MalType, env: Env): MalType => {
 
             case "quasiquote": {
               ast = quasiquote(ast.value[1]);
+              continue;
+            }
+
+            case "quasiquoteexpand": {
+              return quasiquote(ast.value[1]);
             }
 
             case DEF_MACRO: {

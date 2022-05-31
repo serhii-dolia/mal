@@ -46,19 +46,55 @@ const READ = async (): Promise<MalType> => {
   return read_str(await rl.question("input> "));
 };
 
+const quasiquote = (_: MalType) => {
+  function processNormalList(arg: MalList | MalVector) {
+    let list = malList([]);
+    for (let i = arg.value.length - 1; i >= 0; i--) {
+      const elt = ile(arg, i);
+      if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
+        list = malList([malSymbol("concat"), ile(elt, 1), list]);
+      } else {
+        list = malList([malSymbol("cons"), quasiquote(elt), list]);
+      }
+    }
+    return list;
+  }
+  if (_.type === VECTOR) {
+    return malList([malSymbol("vec"), processNormalList(_)]);
+  }
+  if (_.type === LIST) {
+    if (_.value.length === 0) {
+      return malList([]);
+    }
+    if (ile(_).value === "unquote") {
+      return ile(_, 1);
+    } else {
+      return processNormalList(_);
+      // let list = malList([]);
+      // for (let i = _.value.length - 1; i >= 0; i--) {
+      //   const elt = ile(_, i);
+      //   if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
+      //     list = malList([malSymbol("concat"), ile(elt, 1), list]);
+      //   } else {
+      //     list = malList([malSymbol("cons"), qq(elt), list]);
+      //   }
+      // }
+      // return list;
+    }
+  } else if (_.type === HASHMAP || _.type === SYMBOL) {
+    return malList([malSymbol("quote"), _]);
+  } else {
+    return _;
+  }
+};
+
 const EVAL = (ast: MalType, env: Env): MalType => {
   while (true) {
     switch (ast.type) {
       // case FUNCTION:
       // case TCO_FUNCTION:
       //   return ast;
-      case VECTOR: {
-        if (ast.value.length === 0) {
-          return ast;
-        } else {
-          return eval_ast(ast, env);
-        }
-      }
+      case VECTOR:
       case HASHMAP: {
         if (ast.value.length === 0) {
           return ast;
@@ -71,13 +107,20 @@ const EVAL = (ast: MalType, env: Env): MalType => {
         if (ast.value.length === 0) {
           return ast;
         } else {
+          if (ast.type !== LIST) {
+            return eval_ast(ast, env);
+          }
           const firstValue = ast.value[0];
           switch (firstValue.value) {
-            case DEF:
+            // case "macroexpand": {
+            //   return macroexpand(ast, env);
+            // }
+            case DEF: {
               const [, varName, varValue] = ast.value as DefList;
               const evaluatedValue = EVAL(varValue, env);
               env.set(varName.value, evaluatedValue);
               return evaluatedValue;
+            }
             case LET: {
               const letEnv = new Env(env);
               const bindingList = ast.value[1] as MalList;
@@ -98,6 +141,20 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               continue;
               //return EVAL(expressionToEvaluate, letEnv);
             }
+
+            case "quote": {
+              return ast.value[1];
+            }
+
+            case "quasiquote": {
+              ast = quasiquote(ast.value[1]);
+              continue;
+            }
+
+            case "quasiquoteexpand": {
+              return quasiquote(ast.value[1]);
+            }
+
             case DO: {
               const doListValues = ast.value as unknown as DoList;
               doListValues.slice(1, -1).map<MalType>((el) => EVAL(el, env));
@@ -141,16 +198,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               );
             }
             default:
-              if (ast.value[0].value === "quote") {
-                return (REPL_ENV.get("quote") as MalFunction).value(
-                  ast.value[1]
-                );
-              } else if (ast.value[0].value === "quasiquote") {
-                ast = (REPL_ENV.get("quasiquote") as MalFunction).value(
-                  ast.value[1]
-                );
-                continue;
-              }
               const evaluatedList = eval_ast(ast, env);
               const firstElement = evaluatedList.value[0];
               if (firstElement.type === FUNCTION) {
@@ -213,56 +260,6 @@ for (const [key, value] of core) {
 REPL_ENV.set(
   "eval",
   malFunction((value: MalType) => EVAL(value, REPL_ENV))
-);
-
-REPL_ENV.set(
-  "quote",
-  malFunction((value: MalType) => value)
-);
-
-REPL_ENV.set(
-  "quasiquote",
-  malFunction(function qq(_: MalType) {
-    function processNormalList(arg: MalList | MalVector) {
-      let list = malList([]);
-      for (let i = arg.value.length - 1; i >= 0; i--) {
-        const elt = ile(arg, i);
-        if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
-          list = malList([malSymbol("concat"), ile(elt, 1), list]);
-        } else {
-          list = malList([malSymbol("cons"), qq(elt), list]);
-        }
-      }
-      return list;
-    }
-    if (_.type === VECTOR) {
-      return malList([malSymbol("vec"), processNormalList(_)]);
-    }
-    if (_.type === LIST) {
-      if (_.value.length === 0) {
-        return malList([]);
-      }
-      if (ile(_).value === "unquote") {
-        return ile(_, 1);
-      } else {
-        return processNormalList(_);
-        // let list = malList([]);
-        // for (let i = _.value.length - 1; i >= 0; i--) {
-        //   const elt = ile(_, i);
-        //   if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
-        //     list = malList([malSymbol("concat"), ile(elt, 1), list]);
-        //   } else {
-        //     list = malList([malSymbol("cons"), qq(elt), list]);
-        //   }
-        // }
-        // return list;
-      }
-    } else if (_.type === HASHMAP || _.type === SYMBOL) {
-      return malList([malSymbol("quote"), _]);
-    } else {
-      return _;
-    }
-  } as MalFunctionPrimitive)
 );
 
 const rep = async (read: () => Promise<MalType>) => {
