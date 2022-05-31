@@ -1,4 +1,5 @@
 import { Env } from "./env";
+import { read_string_to_mal_string } from "./reader.js";
 
 export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");
@@ -82,10 +83,13 @@ export const malNil = (): MalNil => ({
   value: null,
 });
 
-export const malString = (value: MalString["value"]): MalString => ({
-  type: STRING,
-  value,
-});
+export const malString = (value: MalString["value"] | string): MalString => {
+  if (typeof value === "object") {
+    return { type: STRING, value };
+  } else {
+    return read_string_to_mal_string(`"${value}"`);
+  }
+};
 
 export const malTrue = (): MalTrue => ({
   type: TRUE,

@@ -35,6 +35,13 @@ import {
   VECTOR,
 } from "./types.js";
 
+class MalError extends Error {
+  constructor(arg: MalType) {
+    super();
+    this.message = pr_str(arg, true);
+  }
+}
+
 const map = new Map<string, MalFunction>();
 
 map.set(
@@ -211,7 +218,7 @@ map.set(
     const str = `"${args.map((a) => `${pr_str(a, true)}`).join(" ")}"`;
     // I have no goddamn idea what MAL creator wants from me with the string stuff.
     // I don't understand why tests are written this way. There's NOWHERE a mention of escaping that I have to do somewhere. But the tests for pr-str are hinting towards it
-    return read_string_to_mal_string(escape_str(str));
+    return read_string_to_mal_string(escape_str(str) as `"${string}"`);
   }) as MalFunctionPrimitive)
 );
 
@@ -237,7 +244,7 @@ map.set(
     // I have no goddamn idea what MAL creator wants from me with the string stuff.
     // I don't understand why tests are written this way. There's NOWHERE a mention of escaping that I have to do somewhere. But the tests for pr-str are hinting towards it
     const str = `"${args.map((a) => pr_str(a, false)).join("")}"`;
-    return read_string_to_mal_string(escape_str(str));
+    return read_string_to_mal_string(escape_str(str) as `"${string}"`);
   }) as MalFunctionPrimitive)
 );
 
@@ -332,6 +339,13 @@ map.set(
       return malList([]);
     }
     return malList(_.value.slice(1));
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "throw",
+  malFunction(((_: MalType) => {
+    throw new MalError(_);
   }) as MalFunctionPrimitive)
 );
 

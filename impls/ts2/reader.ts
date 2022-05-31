@@ -191,7 +191,7 @@ const determine_atom = (_: string): MalSingleType => {
     return malKeyword(_ as MalKeyword["value"]);
   }
   if (_.startsWith('"')) {
-    return read_string_to_mal_string(_);
+    return read_string_to_mal_string(_ as `"${string}`);
   }
   if (_.startsWith(";")) {
     //handling comments somehow. TODO: improve
@@ -215,7 +215,7 @@ const determine_atom = (_: string): MalSingleType => {
 };
 
 //we know it starts with `"`
-export const read_string_to_mal_string = (_: string): MalString => {
+export const read_string_to_mal_string = (_: `"${string}`): MalString => {
   if (_.length === 1) {
     throw new Error(EOF);
   }
