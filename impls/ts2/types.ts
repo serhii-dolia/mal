@@ -148,6 +148,8 @@ export type IfList =
   | [MalSymbol<typeof IF>, MalType, MalType, MalType]
   | [MalSymbol<typeof IF>, MalType, MalType];
 export type FnList = [MalSymbol<typeof FN>, MalList, MalType];
+export type TryList = [MalSymbol<typeof TRY>, MalType, MalList];
+export type CatchList = [MalSymbol<typeof CATCH>, MalSymbol, MalType];
 
 export const DEF = "def!" as const;
 export const LET = "let*" as const;
@@ -155,6 +157,8 @@ export const IF = "if" as const;
 export const DO = "do" as const;
 export const FN = "fn*" as const;
 export const DEF_MACRO = "defmacro!" as const;
+export const TRY = "try*" as const;
+export const CATCH = "catch*" as const;
 
 export type SPECIAL_SYMBOL =
   | typeof DEF
