@@ -1,10 +1,16 @@
+//@ts-ignore
+import * as readline from "node:readline/promises";
+
 import { pr_str } from "./printer.js";
 import { read_str, read_string_to_mal_string } from "./reader.js";
-import * as fs from "node:fs";
+
 import {
   ATOM,
   FALSE,
   FUNCTION,
+  HASHMAP,
+  HashMapPair,
+  KEYWORD,
   LIST,
   MalAtom,
   malAtom,
@@ -14,6 +20,10 @@ import {
   malFunction,
   MalFunction,
   MalFunctionPrimitive,
+  MalHashMap,
+  malHashMap,
+  malKeyword,
+  MalKeyword,
   MalList,
   malList,
   MalNil,
@@ -35,9 +45,25 @@ import {
   SYMBOL,
   TCO_FUNCTION,
   TRUE,
+  ValueType,
   VECTOR,
 } from "./types.js";
 import { MalError } from "./mal_error.js";
+
+import * as fs from "node:fs";
+import { stdin as input, stdout as output } from "node:process";
+import { start } from "node:repl";
+
+const getCheckFunction = (type: ValueType[]): MalFunction =>
+  malFunction((_: MalType) => {
+    return type.includes(_.type) ? malTrue() : malFalse();
+  });
+
+const malStringToString = (_: MalString): string =>
+  _.value
+    .slice(1, -1)
+    .map((el) => el.value)
+    .join("");
 
 const map = new Map<string, MalFunction>();
 
@@ -404,6 +430,169 @@ map.set(
   malFunction((_: MalType) => {
     return _.type === SYMBOL ? malTrue() : malFalse();
   })
+);
+
+map.set(
+  "symbol",
+  malFunction(((_: MalString): MalSymbol => {
+    return malSymbol(malStringToString(_));
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "keyword",
+  malFunction(((_: MalString): MalKeyword => {
+    return malKeyword(`:${malStringToString(_)}`);
+  }) as MalFunctionPrimitive)
+);
+
+map.set("keyword?", getCheckFunction([KEYWORD]));
+
+map.set(
+  "vector",
+  malFunction((...args: MalType[]) => malVector(args))
+);
+
+map.set("vector?", getCheckFunction([VECTOR]));
+
+map.set("sequential?", getCheckFunction([VECTOR, LIST]));
+
+map.set(
+  "hash-map",
+  malFunction((...args: MalType[]) => {
+    if (args.length % 2 !== 0) {
+      throw new MalError("odd number of arguments for hash-map");
+    }
+    const pairs: HashMapPair[] = [];
+    for (let i = 0; i < args.length; i += 2) {
+      const key = args[i];
+      const value = args[i + 1];
+
+      if (![KEYWORD, STRING].includes(key.type)) {
+        throw new MalError("Wrong hashmap key type");
+      }
+      pairs.push([key as MalKeyword | MalString, value]);
+    }
+    return malHashMap(pairs);
+  })
+);
+
+map.set("map?", getCheckFunction([HASHMAP]));
+
+map.set(
+  "assoc",
+  malFunction(((hm: MalHashMap, ...args: MalType[]) => {
+    const createHm = map.get("hash-map")?.value as MalFunctionPrimitive;
+    return malHashMap([
+      ...hm.value,
+      ...(createHm(...args) as MalHashMap).value,
+    ]);
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "dissoc",
+  malFunction(((hm: MalHashMap, ...args: (MalString | MalKeyword)[]) => {
+    const values = hm.value;
+    const equal = map.get("=")?.value as MalFunctionPrimitive;
+    const filteredValues = values.filter(([key, value]) => {
+      for (const arg of args) {
+        if (equal(key, arg).value) {
+          return false;
+        }
+      }
+      return true;
+    });
+    return malHashMap(filteredValues);
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "get",
+  malFunction(((hm: MalHashMap, key: MalString | MalKeyword) => {
+    const values = hm.value;
+    const equal = map.get("=")?.value as MalFunctionPrimitive;
+    const pair = values.find(([hmKey, value]) => {
+      if (equal(hmKey, key).value) {
+        return true;
+      }
+      return false;
+    });
+    if (pair) {
+      return pair[1];
+    }
+    return malNil();
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "contains?",
+  malFunction(((hm: MalHashMap, key: MalString | MalKeyword) => {
+    const get = map.get("get")?.value as MalFunctionPrimitive;
+    const value = get(hm, key);
+    if (value) {
+      return malTrue();
+    }
+    return malFalse();
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "keys",
+  malFunction(((hm: MalHashMap) =>
+    malList(hm.value.map((pair) => pair[0]))) as MalFunctionPrimitive)
+);
+
+map.set(
+  "vals",
+  malFunction(((hm: MalHashMap) =>
+    malList(hm.value.map((pair) => pair[1]))) as MalFunctionPrimitive)
+);
+
+map.set(
+  "readline",
+  malFunction(((_: MalString) => {
+    let welcomeString = malStringToString(_);
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      terminal: false,
+    });
+    rl;
+
+    //process.stdout.write(welcomeString + "\n");
+    // const fd = fs.openSync("/dev/stdin", "rs");
+    // let buf = Buffer.alloc(3);
+    // let str = "";
+    // while (true) {
+    //   let finish = false;
+    //   fs.readSync(fd, buf);
+
+    //   if (buf[0] === 13 && buf[1] === 0 && buf[2] === 0) {
+    //     finish = true;
+    //   } else if (buf[0] === 3 && buf[1] === 0 && buf[2] === 0) {
+    //     finish = true;
+    //     str = "";
+    //   } else {
+    //     if (buf.toString()) {
+    //       const a = buf.toString();
+    //       str = str + buf.toString();
+    //       str = str.replace(/\0/g, "");
+    //       let insert = str.length;
+    //       //promptPrint(masked, ask, echo, str, insert);
+    //       process.stdout.write(a);
+    //       //process.stdout.write("\u001b[" + (insert + 1) + "G");
+    //       buf = Buffer.alloc(3);
+    //     }
+    //   }
+    //   if (finish) break;
+    // }
+
+    // process.stdout.write("\n");
+    // fs.closeSync(fd!);
+    return malString(""); //str);
+    // throw new MalError("readline sync is hard...");
+  }) as MalFunctionPrimitive)
 );
 
 const escape_str = (_: string): string => {
