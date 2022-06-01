@@ -338,6 +338,8 @@ for (const [key, value] of core) {
   REPL_ENV.set(key, value);
 }
 
+REPL_ENV.set("*host-language*", malString("ts2"));
+
 // REPL_ENV.set(
 //   DEF,
 //   malFunction((ast: MalType) => {
@@ -485,5 +487,8 @@ if (process.argv.length > 2) {
   }
   process.exit(0);
 } else {
+  await rep(() =>
+    Promise.resolve(read_str(`(println (str "Mal [" *host-language* "]"))`))
+  );
   start();
 }

@@ -561,6 +561,62 @@ map.set(
   }) as MalFunctionPrimitive)
 );
 
+map.set(
+  "time-ms",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "meta",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "with-meta",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "fn?",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "string?",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "number?",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "seq",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "conj",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
 const escape_str = (_: string): string => {
   const elements = _.slice(1, -1).split("");
   return `"${elements
