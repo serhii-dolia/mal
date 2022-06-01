@@ -550,6 +550,62 @@ map.set(
 );
 
 map.set(
+  "time-ms",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "meta",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "with-meta",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "fn?",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "string?",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "number?",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "seq",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
+  "conj",
+  malFunction(() => {
+    throw new MalError(malString("Not implemented"));
+  })
+);
+
+map.set(
   "readline",
   malFunction(((_: MalString) => {
     let welcomeString = malStringToString(_);
