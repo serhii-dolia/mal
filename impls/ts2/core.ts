@@ -52,7 +52,7 @@ import { MalError } from "./mal_error.js";
 
 import * as fs from "node:fs";
 import { stdin as input, stdout as output } from "node:process";
-import { start } from "node:repl";
+import { rl } from "./readline.js";
 
 const getCheckFunction = (type: ValueType[]): MalFunction =>
   malFunction((_: MalType) => {
@@ -296,15 +296,15 @@ map.set(
 
 map.set(
   "swap!",
-  malFunction(((
+  malFunction((async (
     atom: MalAtom,
     f: MalTCOFunction | MalFunction,
     ...args: MalType[]
   ) => {
     if (f.type === TCO_FUNCTION) {
-      atom.value = f.value.value(atom.value, ...args);
+      atom.value = await f.value.value(atom.value, ...args);
     } else {
-      atom.value = f.value(atom.value, ...args);
+      atom.value = await f.value(atom.value, ...args);
     }
     return atom.value;
   }) as MalFunctionPrimitive)
@@ -392,14 +392,16 @@ map.set(
 
 map.set(
   "map",
-  malFunction(((
+  malFunction((async (
     func: MalTCOFunction | MalFunction,
     list: MalList | MalVector
   ) => {
     if (func.type === FUNCTION) {
-      return malList(list.value.map((t) => func.value(t)));
+      return malList(await Promise.all(list.value.map((t) => func.value(t))));
     } else {
-      return malList(list.value.map((t) => func.value.value(t)));
+      return malList(
+        await Promise.all(list.value.map((t) => func.value.value(t)))
+      );
     }
   }) as MalFunctionPrimitive)
 );
@@ -492,34 +494,31 @@ map.set(
 
 map.set(
   "dissoc",
-  malFunction(((hm: MalHashMap, ...args: (MalString | MalKeyword)[]) => {
+  malFunction((async (hm: MalHashMap, ...args: (MalString | MalKeyword)[]) => {
     const values = hm.value;
     const equal = map.get("=")?.value as MalFunctionPrimitive;
-    const filteredValues = values.filter(([key, value]) => {
+    const filteredValues: HashMapPair[] = [];
+    for (const [key, value] of values) {
       for (const arg of args) {
-        if (equal(key, arg).value) {
-          return false;
+        if ((await equal(key, arg)).value) {
         }
       }
-      return true;
-    });
+      filteredValues.push([key, value]);
+    }
+
     return malHashMap(filteredValues);
   }) as MalFunctionPrimitive)
 );
 
 map.set(
   "get",
-  malFunction(((hm: MalHashMap, key: MalString | MalKeyword) => {
+  malFunction((async (hm: MalHashMap, key: MalString | MalKeyword) => {
     const values = hm.value;
     const equal = map.get("=")?.value as MalFunctionPrimitive;
-    const pair = values.find(([hmKey, value]) => {
-      if (equal(hmKey, key).value) {
-        return true;
+    for (const [hmKey, value] of values) {
+      if ((await equal(hmKey, key)).value) {
+        return value;
       }
-      return false;
-    });
-    if (pair) {
-      return pair[1];
     }
     return malNil();
   }) as MalFunctionPrimitive)
@@ -551,46 +550,13 @@ map.set(
 
 map.set(
   "readline",
-  malFunction(((_: MalString) => {
-    let welcomeString = malStringToString(_);
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: false,
-    });
-    rl;
-
-    //process.stdout.write(welcomeString + "\n");
-    // const fd = fs.openSync("/dev/stdin", "rs");
-    // let buf = Buffer.alloc(3);
-    // let str = "";
-    // while (true) {
-    //   let finish = false;
-    //   fs.readSync(fd, buf);
-
-    //   if (buf[0] === 13 && buf[1] === 0 && buf[2] === 0) {
-    //     finish = true;
-    //   } else if (buf[0] === 3 && buf[1] === 0 && buf[2] === 0) {
-    //     finish = true;
-    //     str = "";
-    //   } else {
-    //     if (buf.toString()) {
-    //       const a = buf.toString();
-    //       str = str + buf.toString();
-    //       str = str.replace(/\0/g, "");
-    //       let insert = str.length;
-    //       //promptPrint(masked, ask, echo, str, insert);
-    //       process.stdout.write(a);
-    //       //process.stdout.write("\u001b[" + (insert + 1) + "G");
-    //       buf = Buffer.alloc(3);
-    //     }
-    //   }
-    //   if (finish) break;
-    // }
-
-    // process.stdout.write("\n");
-    // fs.closeSync(fd!);
-    return malString(""); //str);
+  malFunction((async (_: MalString) => {
+    // const rl = readline.createInterface({
+    //   input,
+    //   output,
+    // });
+    const res = await rl.question(malStringToString(_));
+    return malString(res);
     // throw new MalError("readline sync is hard...");
   }) as MalFunctionPrimitive)
 );

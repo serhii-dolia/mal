@@ -15,6 +15,21 @@ export const FALSE: unique symbol = Symbol("false");
 export const KEYWORD: unique symbol = Symbol("keyword");
 export const ATOM: unique symbol = Symbol("atom");
 
+export type ValueType =
+  | typeof NUMBER
+  | typeof SYMBOL
+  | typeof LIST
+  | typeof VECTOR
+  | typeof HASHMAP
+  | typeof STRING
+  | typeof FUNCTION
+  | typeof TCO_FUNCTION
+  | typeof NIL
+  | typeof TRUE
+  | typeof FALSE
+  | typeof KEYWORD
+  | typeof ATOM;
+
 export type MalSingleType =
   | MalNumber
   | MalSymbol
@@ -185,7 +200,9 @@ export interface MalTCOFunction {
   isMacro: boolean;
 }
 
-export type MalFunctionPrimitive = (...args: MalType[]) => MalType;
+export type MalFunctionPrimitive = (
+  ...args: MalType[]
+) => MalType | Promise<MalType>;
 
 export type MalNil = {
   type: typeof NIL;

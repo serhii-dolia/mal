@@ -1,6 +1,6 @@
-//@ts-ignore
-import * as readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
+// import * as readline from "node:readline/promises";
+// import { stdin as input, stdout as output } from "node:process";
+import { rl } from "./readline.js";
 import { pr_str } from "./printer.js";
 import { read_str, read_string_to_mal_string } from "./reader.js";
 import {
@@ -47,7 +47,7 @@ import { Env } from "./env.js";
 import core, { ile } from "./core.js";
 import { MalError } from "./mal_error.js";
 
-const rl = readline.createInterface({ input, output });
+// const rl = readline.createInterface({ input, output });
 
 const READ = async (): Promise<MalType> => {
   return read_str(await rl.question("input> "));
@@ -112,7 +112,7 @@ const is_macro_call = (ast: MalType, env: Env): ast is MalList => {
   return false;
 };
 
-const macroexpand = (ast: MalType, env: Env): MalType => {
+const macroexpand = async (ast: MalType, env: Env): Promise<MalType> => {
   let x = ast;
   while (is_macro_call(x, env)) {
     const firstValue = x.value[0];
@@ -120,30 +120,37 @@ const macroexpand = (ast: MalType, env: Env): MalType => {
       throw new MalError("macro problem");
     }
     const macroFunction = env.get(firstValue.value) as MalTCOFunction;
-    x = macroFunction.value.value(...x.value.slice(1));
+    x = await macroFunction.value.value(...x.value.slice(1));
   }
   return x;
 };
 
-function eval_ast(ast: MalList, replEnv: Env): MalList;
-function eval_ast(ast: MalVector, replEnv: Env): MalVector;
-function eval_ast(ast: MalHashMap, replEnv: Env): MalHashMap;
-function eval_ast(ast: MalSingleType, replEnv: Env): MalType;
-function eval_ast(ast: MalType, replEnv: Env): MalType;
-function eval_ast(ast: MalType, replEnv: Env): MalType {
+function eval_ast(ast: MalList, replEnv: Env): Promise<MalList>;
+function eval_ast(ast: MalVector, replEnv: Env): Promise<MalVector>;
+function eval_ast(ast: MalHashMap, replEnv: Env): Promise<MalHashMap>;
+function eval_ast(ast: MalSingleType, replEnv: Env): Promise<MalType>;
+function eval_ast(ast: MalType, replEnv: Env): Promise<MalType>;
+async function eval_ast(ast: MalType, replEnv: Env): Promise<MalType> {
   switch (ast.type) {
     case SYMBOL: {
       return replEnv.get(ast.value);
     }
     case LIST: {
-      return malList(ast.value.map((v) => EVAL(v, replEnv)));
+      return malList(await Promise.all(ast.value.map((v) => EVAL(v, replEnv))));
     }
     case VECTOR: {
-      return malVector(ast.value.map((v) => EVAL(v, replEnv)));
+      return malVector(
+        await Promise.all(ast.value.map((v) => EVAL(v, replEnv)))
+      );
     }
     case HASHMAP: {
       return malHashMap(
-        ast.value.map(([key, value]) => [key, EVAL(value, replEnv)])
+        await Promise.all(
+          ast.value.map(async ([key, value]) => [
+            key,
+            await EVAL(value, replEnv),
+          ])
+        )
       );
     }
     default:
@@ -151,7 +158,7 @@ function eval_ast(ast: MalType, replEnv: Env): MalType {
   }
 }
 
-const EVAL = (ast: MalType, env: Env): MalType => {
+const EVAL = async (ast: MalType, env: Env): Promise<MalType> => {
   while (true) {
     switch (ast.type) {
       // case FUNCTION:
@@ -170,7 +177,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
         if (ast.value.length === 0) {
           return ast;
         } else {
-          ast = macroexpand(ast, env);
+          ast = await macroexpand(ast, env);
           if (ast.type !== LIST) {
             return eval_ast(ast, env);
           }
@@ -184,7 +191,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             // }
             case DEF: {
               const [, varName, varValue] = ast.value as DefList;
-              const evaluatedValue = EVAL(varValue, env);
+              const evaluatedValue = await EVAL(varValue, env);
               env.set(varName.value, evaluatedValue);
               return evaluatedValue;
             }
@@ -201,7 +208,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
                 if (key.type !== SYMBOL) {
                   throw new MalError("Must be symbol for binding");
                 }
-                letEnv.set(key.value, EVAL(value, letEnv));
+                letEnv.set(key.value, await EVAL(value, letEnv));
               }
               env = letEnv;
               ast = expressionToEvaluate;
@@ -224,7 +231,10 @@ const EVAL = (ast: MalType, env: Env): MalType => {
 
             case DEF_MACRO: {
               const [, varName, varValue] = ast.value as DefList;
-              const evaluatedValue = EVAL(varValue, env) as MalTCOFunction;
+              const evaluatedValue = (await EVAL(
+                varValue,
+                env
+              )) as MalTCOFunction;
               evaluatedValue.isMacro = true;
               env.set(varName.value, evaluatedValue);
               return evaluatedValue;
@@ -252,7 +262,9 @@ const EVAL = (ast: MalType, env: Env): MalType => {
 
             case DO: {
               const doListValues = ast.value as unknown as DoList;
-              doListValues.slice(1, -1).map<MalType>((el) => EVAL(el, env));
+              await Promise.all(
+                doListValues.slice(1, -1).map((el) => EVAL(el, env))
+              );
               // TCO magic
               ast = doListValues[doListValues.length - 1];
               continue;
@@ -260,8 +272,8 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             }
             case IF: {
               const ifListValues = ast.value as unknown as IfList;
-              const evaluatedCondition = EVAL(
-                eval_ast(ifListValues[1], env),
+              const evaluatedCondition = await EVAL(
+                await eval_ast(ifListValues[1], env),
                 env
               );
               if (![NIL, FALSE].includes(evaluatedCondition.type)) {
@@ -293,7 +305,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               );
             }
             default:
-              const evaluatedList = eval_ast(ast, env);
+              const evaluatedList = await eval_ast(ast, env);
               const firstElement = evaluatedList.value[0];
               if (firstElement.type === FUNCTION) {
                 // case for (+ 1 2)
@@ -433,7 +445,7 @@ REPL_ENV.set(
 // );
 
 const rep = async (read: () => Promise<MalType>) => {
-  PRINT(EVAL(await read(), REPL_ENV));
+  PRINT(await EVAL(await read(), REPL_ENV));
 };
 
 const start = async () => {
