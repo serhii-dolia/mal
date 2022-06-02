@@ -53,6 +53,7 @@ import { MalError } from "./mal_error.js";
 import * as fs from "node:fs";
 import { stdin as input, stdout as output } from "node:process";
 import { start } from "node:repl";
+import { rl } from "./readline.js";
 
 const getCheckFunction = (type: ValueType[]): MalFunction =>
   malFunction((_: MalType) => {
@@ -216,7 +217,7 @@ map.set(
   malFunction(((fileName: MalString) => {
     const unwrappedName = pr_str(fileName, true).slice(1, -1);
     const fileContent = fs.readFileSync(unwrappedName, { encoding: "utf-8" });
-    return read_string_to_mal_string(`"${fileContent}"`);
+    return read_string_to_mal_string(escape_str(`"${fileContent}"`));
   }) as MalFunctionPrimitive)
 );
 
@@ -608,68 +609,128 @@ map.set(
 map.set(
   "readline",
   malFunction(((_: MalString) => {
-    let welcomeString = malStringToString(_);
-    let buf = Buffer.alloc(3);
-    let str = "";
-    let finish = false;
-    while (true) {
-      fs.readSync(0, buf);
-      if (buf[0] === 13 && buf[1] === 0 && buf[2] === 0) {
-        finish = true;
-      } else if (buf[0] === 3 && buf[1] === 0 && buf[2] === 0) {
-        finish = true;
-        str = "";
-      } else {
-        if (buf.toString()) {
-          const a = buf.toString();
-          str = str + buf.toString();
-          str = str.replace(/\0/g, "");
-          let insert = str.length;
-          //promptPrint(masked, ask, echo, str, insert);
-          process.stdout.write(a);
-          //process.stdout.write("\u001b[" + (insert + 1) + "G");
-          buf = Buffer.alloc(3);
-        }
-      }
-      if (finish) break;
-    }
+    rl.pause();
+    const query = malStringToString(_);
+    var insert = 0,
+      savedinsert = 0,
+      res,
+      i,
+      savedstr;
+    var term = 13; // carriage return
+    process.stdin.pause();
+    const fd = fs.openSync("/dev/tty", "r");
 
-    //process.stdout.write(welcomeString + "\n");
-    // const fd = fs.openSync("/dev/stdin", "rs");
-    // let buf = Buffer.alloc(3);
-    // let str = "";
-    // while (true) {
-    //   let finish = false;
-    //   fs.readSync(fd, buf);
-
-    //   if (buf[0] === 13 && buf[1] === 0 && buf[2] === 0) {
-    //     finish = true;
-    //   } else if (buf[0] === 3 && buf[1] === 0 && buf[2] === 0) {
-    //     finish = true;
-    //     str = "";
-    //   } else {
-    //     if (buf.toString()) {
-    //       const a = buf.toString();
-    //       str = str + buf.toString();
-    //       str = str.replace(/\0/g, "");
-    //       let insert = str.length;
-    //       //promptPrint(masked, ask, echo, str, insert);
-    //       process.stdout.write(a);
-    //       //process.stdout.write("\u001b[" + (insert + 1) + "G");
-    //       buf = Buffer.alloc(3);
-    //     }
-    //   }
-    //   if (finish) break;
+    // var wasRaw = process.stdin.isRaw;
+    // if (!wasRaw) {
+    //   process.stdin.setRawMode && process.stdin.setRawMode(true);
     // }
 
-    // process.stdout.write("\n");
-    // fs.closeSync(fd!);
-    return malString(""); //str);
+    var buf = Buffer.alloc(1000);
+    var str = "",
+      character,
+      read;
+
+    savedstr = "";
+
+    process.stdout.write(query + "\n");
+
+    var cycle = 0;
+    var prevComplete;
+
+    //while (true) {
+    read = fs.readSync(fd, buf, 0, 1000, null);
+    str = str + buf.toString();
+    str = str.replace(/\0/g, "");
+    insert = str.length;
+    //process.stdout.write(query + " " + str);
+    //process.stdout.write("\u001b[" + (insert + query.length + 1) + "G");
+    buf = Buffer.alloc(1000);
+    // if (read > 1) {
+    //   // received a control sequence
+    //   switch (buf.toString()) {
+    //     case "\u001b[D": //left arrow
+    //       var before = insert;
+    //       insert = --insert < 0 ? 0 : insert;
+    //       if (before - insert) process.stdout.write("\u001b[1D");
+    //       break;
+    //     case "\u001b[C": //right arrow
+    //       insert = ++insert > str.length ? str.length : insert;
+    //       process.stdout.write("\u001b[" + (insert + query.length + 1) + "G");
+    //       break;
+    //     default:
+    //       if (buf.toString()) {
+    //         str = str + buf.toString();
+    //         str = str.replace(/\0/g, "");
+    //         insert = str.length;
+    //         process.stdout.write(query + " " + str);
+    //         process.stdout.write(
+    //           "\u001b[" + (insert + query.length + 1) + "G"
+    //         );
+    //         buf = Buffer.alloc(1000);
+    //       }
+    //   }
+    //   continue; // any other 3 character sequence is ignored
+    // }
+
+    // if it is not a control character seq, assume only one character is read
+    //   character = buf[read - 1];
+
+    //   // catch a ^C and return null
+    //   if (character == 3) {
+    //     process.stdout.write("^C\n");
+    //     fs.closeSync(fd);
+
+    //     process.stdin.setRawMode && process.stdin.setRawMode(wasRaw);
+
+    //     return null;
+    //   }
+
+    //   // catch a ^D and exit
+    //   if (character == 4) {
+    //     if (str.length == 0) {
+    //       process.stdout.write("exit\n");
+    //       process.exit(0);
+    //     }
+    //   }
+
+    //   // catch the terminating character
+    //   if (character == term) {
+    //     fs.closeSync(fd);
+    //     break;
+    //   }
+
+    //   // catch a TAB and implement autocomplete
+
+    //   if (character == 127) {
+    //     //backspace
+    //     if (!insert) continue;
+    //     str = str.slice(0, insert - 1) + str.slice(insert);
+    //     insert--;
+    //     process.stdout.write("\u001b[2D");
+    //   } else {
+    //     if (character < 32 || character > 126) continue;
+    //     str =
+    //       str.slice(0, insert) +
+    //       String.fromCharCode(character) +
+    //       str.slice(insert);
+    //     insert++;
+    //   }
+
+    //   process.stdout.write(str);
+    // }
+
+    //process.stdout.write(str + "\n");
+
+    //process.stdin.setRawMode && process.stdin.setRawMode(wasRaw);
+    rl.resume();
+    return malString(`\"${str}\"` || "");
+
+    //return malString(""); //str);
     // throw new MalError("readline sync is hard...");
   }) as MalFunctionPrimitive)
 );
 
-const escape_str = (_: string): string => {
+const escape_str = (_: string): `"${string}"` => {
   const elements = _.slice(1, -1).split("");
   return `"${elements
     .map((val) => {

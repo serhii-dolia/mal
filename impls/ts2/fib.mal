@@ -1,0 +1,12 @@
+(def! fib ; shit
+  (fn* (num)
+       (if (= num 1) 1
+           (if (= num 2) 1
+               (+ (fib (- num 1)) (fib (- num 2)))))))
+(def! fib-list (fn* (num) (if (= num 1) '(1) (if (= num 2) '(1 1)
+                                                 (concat ((fib num)) (fib-list (- num 1)))))))
+
+(def! reverse (fn* (l) (if (empty? l) '() (concat (reverse (rest l)) ((first l))))))
+
+(def! hi "\"hello there\"")
+
