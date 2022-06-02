@@ -64,13 +64,14 @@ export const read_str = (_: string) => {
   // if (leftParensCount !== rightParensCount) {
   //   throw new MalError("Parents are not matching!");
   // }
-  return read_form(new Reader(tokenize(_)));
+  const x = read_form(new Reader(tokenize(_)));
+  return x;
 };
 
 const tokenize = (_: string) => {
   return _.split(
     /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/
-  ).filter((_) => _ !== "");
+  ).filter((_) => _ !== "" && !_.startsWith(";"));
 };
 
 const read_form = (
