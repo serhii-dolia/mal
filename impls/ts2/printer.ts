@@ -71,9 +71,18 @@ const unreadable_string_element = (_: StringElement): string => {
   }
 };
 
-const readable_string_element = (_: StringElement): string => {
+const readable_string_element = (
+  _: StringElement,
+  i: number,
+  arr: any[]
+): string => {
   switch (_.type) {
     case "normalStringElement":
+      if (i !== 0 && i !== arr.length - 1) {
+        if (_.value === '"') {
+          return `\\"`;
+        }
+      }
       return _.value;
     case "escapedDoubleQuote":
       return '\\"';

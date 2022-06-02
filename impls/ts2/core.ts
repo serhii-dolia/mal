@@ -611,23 +611,60 @@ map.set(
   malFunction(((_: MalString) => {
     rl.pause();
     const query = malStringToString(_);
+    var insert = 0,
+      savedinsert = 0,
+      res,
+      i,
+      savedstr;
+    var term = 13; // carriage return
+    process.stdin.pause();
     const fd = fs.openSync("/dev/tty", "r");
+
+    // var wasRaw = process.stdin.isRaw;
+    // if (!wasRaw) {
+    //   process.stdin.setRawMode && process.stdin.setRawMode(true);
+    // }
 
     let buf = Buffer.alloc(1000);
     let str = "",
       read;
 
-    process.stdout.write(query + "\n");
+    savedstr = "";
 
-    //while (true) {
-    read = fs.readSync(fd, buf, 0, 1000, null);
-    str = str + buf.toString();
-    str = str.replace(/\0/g, "");
-    //https://github.com/heapwolf/prompt-sync/blob/master/index.js
-    buf = Buffer.alloc(1000);
+    process.stdout.write(query + " ");
+
+    while (true) {
+      read = fs.readSync(fd, buf, 0, 1000, null);
+      //ctr-c
+      if (buf[0] == 3) {
+        //process.stdout.write("^C\n");
+        str = "";
+        break;
+      }
+
+      // catch a ^D and exit
+      if (buf[0] == 4) {
+        str = "";
+        break;
+      }
+
+      // catch the terminating character
+      if (buf[0] === 13) {
+        break;
+      }
+      const new_str = buf.toString();
+      process.stdout.write(new_str);
+      str = str + buf.toString();
+      str = str.replace(/\0/g, "");
+      insert = str.length;
+      //https://github.com/heapwolf/prompt-sync/blob/master/index.js
+      buf = Buffer.alloc(1000);
+    }
+    process.stdout.write("\n");
+    fs.closeSync(fd);
     rl.resume();
 
-    return malString(`\"${str}\"` || "");
+    return read_string_to_mal_string(escape_str(`"${str}"`));
 
     //return malString(""); //str);
     // throw new MalError("readline sync is hard...");

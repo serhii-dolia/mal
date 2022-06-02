@@ -225,7 +225,9 @@ export const read_string_to_mal_string = (_: `"${string}`): MalString => {
   const primitives: StringElement[] = [];
   //we know that 0th element is " and last is supposed to be "
   for (let i = 0; i < _.length; i++) {
-    if (_[i] === BackSlash) {
+    if (i === 0 || i === _.length - 1) {
+      primitives.push({ type: "normalStringElement", value: _[i] });
+    } else if (_[i] === BackSlash) {
       if (_[i + 1] === BackSlash) {
         primitives.push({ type: "escapedBackSlash", value: BackSlash });
         i += 1;
