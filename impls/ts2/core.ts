@@ -609,12 +609,30 @@ map.set(
   "readline",
   malFunction(((_: MalString) => {
     let welcomeString = malStringToString(_);
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: false,
-    });
-    rl;
+    let buf = Buffer.alloc(3);
+    let str = "";
+    let finish = false;
+    while (true) {
+      fs.readSync(0, buf);
+      if (buf[0] === 13 && buf[1] === 0 && buf[2] === 0) {
+        finish = true;
+      } else if (buf[0] === 3 && buf[1] === 0 && buf[2] === 0) {
+        finish = true;
+        str = "";
+      } else {
+        if (buf.toString()) {
+          const a = buf.toString();
+          str = str + buf.toString();
+          str = str.replace(/\0/g, "");
+          let insert = str.length;
+          //promptPrint(masked, ask, echo, str, insert);
+          process.stdout.write(a);
+          //process.stdout.write("\u001b[" + (insert + 1) + "G");
+          buf = Buffer.alloc(3);
+        }
+      }
+      if (finish) break;
+    }
 
     //process.stdout.write(welcomeString + "\n");
     // const fd = fs.openSync("/dev/stdin", "rs");
