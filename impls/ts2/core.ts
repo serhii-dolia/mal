@@ -611,118 +611,22 @@ map.set(
   malFunction(((_: MalString) => {
     rl.pause();
     const query = malStringToString(_);
-    var insert = 0,
-      savedinsert = 0,
-      res,
-      i,
-      savedstr;
-    var term = 13; // carriage return
-    process.stdin.pause();
     const fd = fs.openSync("/dev/tty", "r");
 
-    // var wasRaw = process.stdin.isRaw;
-    // if (!wasRaw) {
-    //   process.stdin.setRawMode && process.stdin.setRawMode(true);
-    // }
-
-    var buf = Buffer.alloc(1000);
-    var str = "",
-      character,
+    let buf = Buffer.alloc(1000);
+    let str = "",
       read;
 
-    savedstr = "";
-
     process.stdout.write(query + "\n");
-
-    var cycle = 0;
-    var prevComplete;
 
     //while (true) {
     read = fs.readSync(fd, buf, 0, 1000, null);
     str = str + buf.toString();
     str = str.replace(/\0/g, "");
-    insert = str.length;
-    //process.stdout.write(query + " " + str);
-    //process.stdout.write("\u001b[" + (insert + query.length + 1) + "G");
+    //https://github.com/heapwolf/prompt-sync/blob/master/index.js
     buf = Buffer.alloc(1000);
-    // if (read > 1) {
-    //   // received a control sequence
-    //   switch (buf.toString()) {
-    //     case "\u001b[D": //left arrow
-    //       var before = insert;
-    //       insert = --insert < 0 ? 0 : insert;
-    //       if (before - insert) process.stdout.write("\u001b[1D");
-    //       break;
-    //     case "\u001b[C": //right arrow
-    //       insert = ++insert > str.length ? str.length : insert;
-    //       process.stdout.write("\u001b[" + (insert + query.length + 1) + "G");
-    //       break;
-    //     default:
-    //       if (buf.toString()) {
-    //         str = str + buf.toString();
-    //         str = str.replace(/\0/g, "");
-    //         insert = str.length;
-    //         process.stdout.write(query + " " + str);
-    //         process.stdout.write(
-    //           "\u001b[" + (insert + query.length + 1) + "G"
-    //         );
-    //         buf = Buffer.alloc(1000);
-    //       }
-    //   }
-    //   continue; // any other 3 character sequence is ignored
-    // }
-
-    // if it is not a control character seq, assume only one character is read
-    //   character = buf[read - 1];
-
-    //   // catch a ^C and return null
-    //   if (character == 3) {
-    //     process.stdout.write("^C\n");
-    //     fs.closeSync(fd);
-
-    //     process.stdin.setRawMode && process.stdin.setRawMode(wasRaw);
-
-    //     return null;
-    //   }
-
-    //   // catch a ^D and exit
-    //   if (character == 4) {
-    //     if (str.length == 0) {
-    //       process.stdout.write("exit\n");
-    //       process.exit(0);
-    //     }
-    //   }
-
-    //   // catch the terminating character
-    //   if (character == term) {
-    //     fs.closeSync(fd);
-    //     break;
-    //   }
-
-    //   // catch a TAB and implement autocomplete
-
-    //   if (character == 127) {
-    //     //backspace
-    //     if (!insert) continue;
-    //     str = str.slice(0, insert - 1) + str.slice(insert);
-    //     insert--;
-    //     process.stdout.write("\u001b[2D");
-    //   } else {
-    //     if (character < 32 || character > 126) continue;
-    //     str =
-    //       str.slice(0, insert) +
-    //       String.fromCharCode(character) +
-    //       str.slice(insert);
-    //     insert++;
-    //   }
-
-    //   process.stdout.write(str);
-    // }
-
-    //process.stdout.write(str + "\n");
-
-    //process.stdin.setRawMode && process.stdin.setRawMode(wasRaw);
     rl.resume();
+
     return malString(`\"${str}\"` || "");
 
     //return malString(""); //str);
