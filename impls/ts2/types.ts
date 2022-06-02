@@ -33,6 +33,20 @@ export type MalType =
   | MalFunction
   | MalAtom;
 
+export type ValueType =
+  | typeof NUMBER
+  | typeof SYMBOL
+  | typeof LIST
+  | typeof VECTOR
+  | typeof HASHMAP
+  | typeof STRING
+  | typeof FUNCTION
+  | typeof TCO_FUNCTION
+  | typeof NIL
+  | typeof TRUE
+  | typeof FALSE
+  | typeof KEYWORD
+  | typeof ATOM;
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
   value,
