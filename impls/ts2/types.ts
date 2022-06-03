@@ -68,12 +68,12 @@ export const malVector = (value: MalVector["value"]): MalVector => ({
 });
 
 export const malHashMap = (
-  value: MalHashMap["value"] | HashMapPair[]
+  value: MalHashMap["value"] | HashMapPair[] | [string, MalType][]
 ): MalHashMap => {
   if (Array.isArray(value)) {
-    const map = new Map<MalString | MalKeyword, MalType>();
+    const map = new Map<string, MalType>();
     for (const [k, v] of value) {
-      map.set(k, v);
+      map.set(typeof k === "string" ? k : k.value, v);
     }
     return {
       type: HASHMAP,
@@ -165,7 +165,7 @@ export type MalVector = {
 
 export type MalHashMap = {
   type: typeof HASHMAP;
-  value: Map<MalString | MalKeyword, MalType>;
+  value: Map<string, MalType>;
 };
 
 export type HashMapPair = [MalKeyword | MalString, MalType];

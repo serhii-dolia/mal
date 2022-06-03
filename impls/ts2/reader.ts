@@ -188,7 +188,7 @@ const read_list = (
 
 const read_atom = (_: Reader): MalSingleType => determine_atom(_.peek());
 
-const determine_atom = (_: string): MalSingleType => {
+export const determine_atom = (_: string): MalSingleType => {
   if (_.startsWith(":")) {
     return malKeyword(_ as MalKeyword["value"]);
   }

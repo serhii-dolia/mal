@@ -2,7 +2,11 @@
 import * as readline from "node:readline/promises";
 
 import { pr_str } from "./printer.js";
-import { read_str, read_string_to_mal_string } from "./reader.js";
+import {
+  determine_atom,
+  read_str,
+  read_string_to_mal_string,
+} from "./reader.js";
 
 import {
   ATOM,
@@ -479,31 +483,39 @@ map.set("map?", getCheckFunction([HASHMAP]));
 map.set(
   "assoc",
   malFunction(((hm: MalHashMap, ...args: MalType[]) => {
-    const createHm = map.get("hash-map")?.value as MalFunctionPrimitive;
-    const hmCopy = malHashMap();
-    return malHashMap([
-      ...hm.value,
-      ...(createHm(...args) as MalHashMap).value,
-    ]);
+    if (args.length === 0) {
+      return hm;
+    }
+    if (args.length % 2 !== 0) {
+      throw new MalError("assoc: uneven number of args!!!");
+    }
+    const newMap = new Map<string, MalType>();
+    for (const [k, v] of hm.value.entries()) {
+      newMap.set(k, v);
+    }
+
+    for (let i = 0; i < args.length; i += 2) {
+      newMap.set(args[i].value as string, args[i + 1]);
+    }
+    return malHashMap(newMap);
   }) as MalFunctionPrimitive)
 );
 
 map.set(
   "dissoc",
   malFunction(((hm: MalHashMap, ...args: (MalString | MalKeyword)[]) => {
-    const values = hm.value;
-    const equal = map.get("=")?.value as MalFunctionPrimitive;
-    const filteredValues = Array.from(values.entries()).filter(
-      ([key, value]) => {
-        for (const arg of args) {
-          if (equal(key, arg).value) {
-            return false;
-          }
-        }
-        return true;
+    const newMap = new Map<string, MalType>();
+    for (const [k, v] of hm.value.entries()) {
+      newMap.set(k, v);
+    }
+
+    for (const arg of args) {
+      if (newMap.get(arg.value)) {
+        newMap.delete(arg.value);
       }
-    );
-    return malHashMap(filteredValues);
+    }
+
+    return malHashMap(newMap);
   }) as MalFunctionPrimitive)
 );
 
@@ -513,27 +525,16 @@ map.set(
     if ((hm as unknown as MalNil).type === NIL) {
       return malNil();
     }
-    const values = Array.from(hm.value.entries());
-    const equal = map.get("=")?.value as MalFunctionPrimitive;
-    const pair = values.find(([hmKey, value]) => {
-      if (equal(hmKey, key).value) {
-        return true;
-      }
-      return false;
-    });
-    if (pair) {
-      return pair[1];
-    }
-    return malNil();
+    const res = hm.value.get(key.value);
+    return res ?? malNil();
   }) as MalFunctionPrimitive)
 );
 
 map.set(
   "contains?",
   malFunction(((hm: MalHashMap, key: MalString | MalKeyword) => {
-    const get = map.get("get")?.value as MalFunctionPrimitive;
-    const value = get(hm, key);
-    if (value.type !== NIL) {
+    const value = hm.value.get(key.value);
+    if (value) {
       return malTrue();
     }
     return malFalse();
@@ -544,7 +545,9 @@ map.set(
   "keys",
   malFunction(((hm: MalHashMap) =>
     malList(
-      Array.from(hm.value.entries()).map((pair) => pair[0])
+      Array.from(hm.value.keys()).map((v) =>
+        v.startsWith(":") ? malKeyword(v as `:${string}`) : malString(v)
+      )
     )) as MalFunctionPrimitive)
 );
 
