@@ -507,6 +507,9 @@ map.set(
 map.set(
   "get",
   malFunction(((hm: MalHashMap, key: MalString | MalKeyword) => {
+    if ((hm as unknown as MalNil).type === NIL) {
+      return malNil();
+    }
     const values = hm.value;
     const equal = map.get("=")?.value as MalFunctionPrimitive;
     const pair = values.find(([hmKey, value]) => {
@@ -527,7 +530,7 @@ map.set(
   malFunction(((hm: MalHashMap, key: MalString | MalKeyword) => {
     const get = map.get("get")?.value as MalFunctionPrimitive;
     const value = get(hm, key);
-    if (value) {
+    if (value.type !== NIL) {
       return malTrue();
     }
     return malFalse();
