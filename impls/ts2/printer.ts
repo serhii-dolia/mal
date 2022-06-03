@@ -51,44 +51,22 @@ export const pr_str = (_: MalType, print_readably: boolean): string => {
 
 const unreadable_string = (_: MalString): string => {
   // we know that they start with " and end with ". We don't need that printed
-  return _.value.slice(1, -1).map(unreadable_string_element).join("");
+  return `${_.value}`;
 };
 
 const readable_string = (_: MalString): string => {
-  return _.value.map(readable_string_element).join("");
+  return `"${_.value.split("").map(readable_string_element).join("")}"`;
 };
 
-const unreadable_string_element = (_: StringElement): string => {
-  switch (_.type) {
-    case "normalStringElement":
-      return _.value;
-    case "escapedDoubleQuote":
-      return '"';
-    case "escapedBackSlash":
-      return "\\";
-    case "escapedNewLine":
-      return "\n";
-  }
-};
-
-const readable_string_element = (
-  _: StringElement,
-  i: number,
-  arr: any[]
-): string => {
-  switch (_.type) {
-    case "normalStringElement":
-      if (i !== 0 && i !== arr.length - 1) {
-        if (_.value === '"') {
-          return `\\"`;
-        }
-      }
-      return _.value;
-    case "escapedDoubleQuote":
-      return '\\"';
-    case "escapedBackSlash":
+const readable_string_element = (_: string): string => {
+  switch (_) {
+    case "\\":
       return "\\\\";
-    case "escapedNewLine":
+    case '"':
+      return '\\"';
+    case "\n":
       return "\\n";
+    default:
+      return _;
   }
 };

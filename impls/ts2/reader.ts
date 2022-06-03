@@ -253,12 +253,21 @@ export const read_string_to_mal_string = (_: `"${string}`): MalString => {
   if (last.type !== "normalStringElement" || last.value !== '"') {
     throw new MalError(EOF);
   }
-  // const lastSymbol = primitives[primitives.length - 1];
-  // if (
-  //   lastSymbol.type !== "normalStringElement" ||
-  //   lastSymbol.value !== DoubleQuote
-  // ) {
-  //   throw new MalError(EOF);
-  // }
-  return malString(primitives);
+  return malString(
+    primitives
+      .slice(1, -1)
+      .map((el) => {
+        switch (el.type) {
+          case "escapedBackSlash":
+            return "\\";
+          case "escapedDoubleQuote":
+            return '"';
+          case "escapedNewLine":
+            return "\n";
+          case "normalStringElement":
+            return el.value;
+        }
+      })
+      .join("")
+  );
 };

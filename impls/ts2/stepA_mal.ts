@@ -39,14 +39,15 @@ import {
   TryList,
   malString,
   CatchList,
+  malBoolean,
 } from "./types.js";
 import { Env } from "./env.js";
 import core, { ile } from "./core.js";
 import { MalError } from "./mal_error.js";
 import { rl } from "./readline.js";
 
-const READ = async (): Promise<MalType> => {
-  return read_str(await rl.question("input> "));
+const READ = (_: string): MalType => {
+  return read_str(_);
 };
 
 const quasiquote = (_: MalType) => {
@@ -293,7 +294,8 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               const firstElement = evaluatedList.value[0];
               if (firstElement.type === FUNCTION) {
                 // case for (+ 1 2)
-                return firstElement.value(...evaluatedList.value.slice(1));
+                ast = firstElement.value(...evaluatedList.value.slice(1));
+                continue;
               } else if (firstElement.type === TCO_FUNCTION) {
                 ast = firstElement.ast;
                 env = new Env(
@@ -423,19 +425,21 @@ REPL_ENV.set(
   malFunction((value: MalType) => EVAL(value, REPL_ENV))
 );
 
+REPL_ENV.set("*host-language*", malString("ts2"));
+
 // REPL_ENV.set(
 //   "quote",
 //   malFunction((value: MalType) => value)
 // );
 
-const rep = async (read: () => Promise<MalType>) => {
-  PRINT(EVAL(await read(), REPL_ENV));
+const rep = (_: string) => {
+  PRINT(EVAL(READ(_), REPL_ENV));
 };
 
 const start = async () => {
   while (true) {
     try {
-      await rep(READ);
+      rep(await rl.question("input> "));
     } catch (e: any) {
       console.log(e.message);
       await start();
@@ -443,29 +447,20 @@ const start = async () => {
   }
 };
 
-await rep(() =>
-  Promise.resolve(read_str("(def! not (fn* (a) (if a false true)))"))
+rep("(def! not (fn* (a) (if a false true)))");
+rep(
+  `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
 );
-await rep(() =>
-  Promise.resolve(
-    read_str(
-      `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
-    )
-  )
+rep(
+  "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))"
 );
-
-await rep(() =>
-  Promise.resolve(
-    read_str(
-      "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))"
-    )
-  )
-);
+rep(`(println (str "Mal [" *host-language* "]"))`);
 
 if (process.argv.length > 2) {
+  (global as any)["run_other_file"] = true;
   const paths = process.argv.slice(2);
   for (const path of paths) {
-    await rep(() => Promise.resolve(read_str(`(load-file "${path}")`)));
+    rep(`(load-file "${path}")`);
   }
   process.exit(0);
 } else {

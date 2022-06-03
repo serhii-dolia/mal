@@ -51,8 +51,6 @@ import {
 import { MalError } from "./mal_error.js";
 
 import * as fs from "node:fs";
-import { stdin as input, stdout as output } from "node:process";
-import { start } from "node:repl";
 import { rl } from "./readline.js";
 
 const getCheckFunction = (type: ValueType[]): MalFunction =>
@@ -60,11 +58,7 @@ const getCheckFunction = (type: ValueType[]): MalFunction =>
     return type.includes(_.type) ? malTrue() : malFalse();
   });
 
-const malStringToString = (_: MalString): string =>
-  _.value
-    .slice(1, -1)
-    .map((el) => el.value)
-    .join("");
+const malStringToString = (_: MalString): string => _.value;
 
 const map = new Map<string, MalFunction>();
 
@@ -217,7 +211,7 @@ map.set(
   malFunction(((fileName: MalString) => {
     const unwrappedName = pr_str(fileName, true).slice(1, -1);
     const fileContent = fs.readFileSync(unwrappedName, { encoding: "utf-8" });
-    return read_string_to_mal_string(escape_str(`"${fileContent}"`));
+    return read_string_to_mal_string(escape_str(fileContent));
   }) as MalFunctionPrimitive)
 );
 
@@ -239,7 +233,7 @@ map.set(
     if (args.length === 0) {
       return read_string_to_mal_string('""');
     }
-    const str = `"${args.map((a) => `${pr_str(a, true)}`).join(" ")}"`;
+    const str = `${args.map((a) => `${pr_str(a, true)}`).join(" ")}`;
     // I have no goddamn idea what MAL creator wants from me with the string stuff.
     // I don't understand why tests are written this way. There's NOWHERE a mention of escaping that I have to do somewhere. But the tests for pr-str are hinting towards it
     return read_string_to_mal_string(escape_str(str) as `"${string}"`);
@@ -259,6 +253,7 @@ map.set(
   }) as MalFunctionPrimitive)
 );
 
+//str: calls pr_str on each argument with print_readably set to false, concatenates the results together ("" separator), and returns the new string.
 map.set(
   "str",
   malFunction(((...args: MalString[]) => {
@@ -267,8 +262,9 @@ map.set(
     }
     // I have no goddamn idea what MAL creator wants from me with the string stuff.
     // I don't understand why tests are written this way. There's NOWHERE a mention of escaping that I have to do somewhere. But the tests for pr-str are hinting towards it
-    const str = `"${args.map((a) => pr_str(a, false)).join("")}"`;
-    return read_string_to_mal_string(escape_str(str) as `"${string}"`);
+    const str = `${args.map((a) => pr_str(a, false)).join("")}`;
+    const a = read_string_to_mal_string(escape_str(str) as `"${string}"`);
+    return a;
   }) as MalFunctionPrimitive)
 );
 
@@ -340,7 +336,7 @@ map.set(
   malFunction(((_: MalList | MalVector, i: MalNumber) => {
     const value = _.value[i.value];
     if (!value) {
-      throw new MalError("no nth value");
+      throw new MalError("out of list range");
     }
     return value;
   }) as MalFunctionPrimitive)
@@ -609,6 +605,7 @@ map.set(
 map.set(
   "readline",
   malFunction(((_: MalString) => {
+    const runOtherFile = (global as any)["run_other_file"] || false;
     rl.pause();
     const query = malStringToString(_);
     var insert = 0,
@@ -632,19 +629,33 @@ map.set(
     savedstr = "";
 
     process.stdout.write(query + " ");
-
+    let closed = false;
     while (true) {
       read = fs.readSync(fd, buf, 0, 1000, null);
       //ctr-c
       if (buf[0] == 3) {
-        //process.stdout.write("^C\n");
-        str = "";
+        if (runOtherFile) {
+          process.exit(0);
+        }
+        process.stdout.write("\n");
+        fs.closeSync(fd);
+        rl.resume();
+        closed = true;
         break;
+        // process.stdout.write("^C\n");
+        // str = "";
+        // break;
       }
 
       // catch a ^D and exit
       if (buf[0] == 4) {
-        str = "";
+        if (runOtherFile) {
+          process.exit(0);
+        }
+        process.stdout.write("\n");
+        fs.closeSync(fd);
+        rl.resume();
+        closed = true;
         break;
       }
 
@@ -660,9 +671,11 @@ map.set(
       //https://github.com/heapwolf/prompt-sync/blob/master/index.js
       buf = Buffer.alloc(1000);
     }
-    process.stdout.write("\n");
-    fs.closeSync(fd);
-    rl.resume();
+    if (!closed) {
+      process.stdout.write("\n");
+      fs.closeSync(fd);
+      rl.resume();
+    }
 
     return read_string_to_mal_string(escape_str(`"${str}"`));
 
@@ -672,7 +685,7 @@ map.set(
 );
 
 const escape_str = (_: string): `"${string}"` => {
-  const elements = _.slice(1, -1).split("");
+  const elements = _.split("");
   return `"${elements
     .map((val) => {
       switch (val) {

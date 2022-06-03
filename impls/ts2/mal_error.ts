@@ -1,13 +1,12 @@
+import core from "./core.js";
 import { pr_str } from "./printer.js";
-import { malString, MalType } from "./types.js";
+import { MalFunction, malString, MalType } from "./types.js";
 
 export class MalError extends Error {
-  constructor(arg: MalType | string) {
+  constructor(..._: (MalType | string)[]) {
     super();
-    if (typeof arg === "string") {
-      this.message = pr_str(malString(arg), true);
-    } else {
-      this.message = pr_str(arg, true);
-    }
+    const args = _.map((a) => (typeof a === "string" ? malString(a) : a));
+    this.message = (core.get("str") as MalFunction)?.value(...args)
+      .value as string;
   }
 }

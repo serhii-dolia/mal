@@ -97,12 +97,8 @@ export const malNil = (): MalNil => ({
   value: null,
 });
 
-export const malString = (value: MalString["value"] | string): MalString => {
-  if (typeof value === "object") {
-    return { type: STRING, value };
-  } else {
-    return read_string_to_mal_string(`"${value}"`);
-  }
+export const malString = (value: MalString["value"]): MalString => {
+  return { type: STRING, value };
 };
 
 export const malTrue = (): MalTrue => ({
@@ -208,7 +204,7 @@ export type MalNil = {
 
 export type MalString = {
   type: typeof STRING;
-  value: StringElement[];
+  value: string;
 };
 
 export type StringElement =

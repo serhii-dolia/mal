@@ -1,6 +1,3 @@
-//@ts-ignore
-import * as readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
 import { pr_str } from "./printer.js";
 import { read_str } from "./reader.js";
 import {
@@ -27,11 +24,10 @@ import {
   VECTOR,
 } from "./types.js";
 import { MalError } from "./mal_error.js";
+import { rl } from "./readline.js";
 
-const rl = readline.createInterface({ input, output });
-
-const READ = async (): Promise<MalType> => {
-  return read_str(await rl.question("input> "));
+const READ = (_: string): MalType => {
+  return read_str(_);
 };
 
 const EVAL = (ast: MalType, replEnv: MalEnv) => {
@@ -125,7 +121,7 @@ const REPL_ENV: MalEnv = {
 const rep = async () => {
   while (true) {
     try {
-      PRINT(EVAL(await READ(), REPL_ENV));
+      PRINT(EVAL(READ(await rl.question("input> ")), REPL_ENV));
     } catch (e: any) {
       console.log(e.message);
       await rep();

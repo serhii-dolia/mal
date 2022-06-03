@@ -1,19 +1,13 @@
-//@ts-ignore
-import * as readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
+import { rl } from "./readline.js";
 
-const rl = readline.createInterface({ input, output });
-
-const READ = async () => {
-    return await rl.question("input> ");
+const READ = (_: string) => {
+  return _;
 };
 
 const EVAL = (_: string) => _;
 
 const PRINT = (_: string) => console.log(_);
 
-const rep = (input: string) => console.log(input);
-
 while (true) {
-    PRINT(EVAL(await READ()));
+  PRINT(EVAL(READ(await rl.question("input> "))));
 }

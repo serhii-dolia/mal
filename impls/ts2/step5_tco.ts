@@ -1,6 +1,3 @@
-//@ts-ignore
-import * as readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
 import { pr_str } from "./printer.js";
 import { read_str } from "./reader.js";
 import {
@@ -45,11 +42,10 @@ import {
 import { Env } from "./env.js";
 import core from "./core.js";
 import { MalError } from "./mal_error.js";
+import { rl } from "./readline.js";
 
-const rl = readline.createInterface({ input, output });
-
-const READ = async (): Promise<MalType> => {
-  return read_str(await rl.question("input> "));
+const READ = (_: string): MalType => {
+  return read_str(_);
 };
 
 const EVAL = (ast: MalType, env: Env): MalType => {
@@ -214,17 +210,21 @@ for (const [key, value] of core) {
   REPL_ENV.set(key, value);
 }
 
-PRINT(EVAL(read_str("(def! not (fn* (a) (if a false true)))"), REPL_ENV));
+const rep = (_: string) => {
+  PRINT(EVAL(READ(_), REPL_ENV));
+};
 
-const rep = async () => {
+rep("(def! not (fn* (a) (if a false true)))");
+
+const start = async () => {
   while (true) {
     try {
-      PRINT(EVAL(await READ(), REPL_ENV));
+      rep(await rl.question("input> "));
     } catch (e: any) {
       console.log(e.message);
-      await rep();
+      await start();
     }
   }
 };
 
-rep();
+start();

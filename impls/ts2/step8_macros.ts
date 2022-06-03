@@ -1,6 +1,3 @@
-//@ts-ignore
-import * as readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
 import { pr_str } from "./printer.js";
 import { read_str } from "./reader.js";
 import {
@@ -42,11 +39,10 @@ import {
 import { Env } from "./env.js";
 import core, { ile } from "./core.js";
 import { MalError } from "./mal_error.js";
+import { rl } from "./readline.js";
 
-const rl = readline.createInterface({ input, output });
-
-const READ = async (): Promise<MalType> => {
-  return read_str(await rl.question("input> "));
+const READ = (_: string): MalType => {
+  return read_str(_);
 };
 
 const quasiquote = (_: MalType) => {
@@ -412,44 +408,33 @@ REPL_ENV.set(
 //   malFunction((value: MalType) => value)
 // );
 
-const rep = async (read: () => Promise<MalType>) => {
-  PRINT(EVAL(await read(), REPL_ENV));
+const rep = (_: string) => {
+  PRINT(EVAL(READ(_), REPL_ENV));
 };
 
 const start = async () => {
   while (true) {
     try {
-      await rep(READ);
+      rep(await rl.question("input> "));
     } catch (e: any) {
       console.log(e.message);
       await start();
     }
   }
 };
-
-await rep(() =>
-  Promise.resolve(read_str("(def! not (fn* (a) (if a false true)))"))
+rep("(def! not (fn* (a) (if a false true)))");
+rep(
+  `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
 );
-await rep(() =>
-  Promise.resolve(
-    read_str(
-      `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
-    )
-  )
-);
-
-await rep(() =>
-  Promise.resolve(
-    read_str(
-      "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))"
-    )
-  )
+rep(
+  "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))"
 );
 
 if (process.argv.length > 2) {
+  (global as any)["run_other_file"] = true;
   const paths = process.argv.slice(2);
   for (const path of paths) {
-    await rep(() => Promise.resolve(read_str(`(load-file "${path}")`)));
+    rep(`(load-file "${path}")`);
   }
   process.exit(0);
 } else {

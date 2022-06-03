@@ -43,7 +43,7 @@ export class Env {
   get(symbol: string): MalType {
     const env = this.find(symbol);
     if (!env) {
-      throw new MalError(`${symbol} not found`);
+      throw new MalError(`'${symbol}' not found`);
     }
     return env.data[symbol];
   }
