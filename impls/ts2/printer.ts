@@ -40,7 +40,7 @@ export const pr_str = (_: MalType, print_readably: boolean): string => {
     case VECTOR:
       return `[${_.value.map((x) => pr_str(x, print_readably)).join(" ")}]`;
     case HASHMAP:
-      return `{${_.value
+      return `{${Array.from(_.value.entries())
         .map((x) => `${pr_str(x[0], true)} ${pr_str(x[1], true)}`)
         .join(" ")}}`;
     case FUNCTION:

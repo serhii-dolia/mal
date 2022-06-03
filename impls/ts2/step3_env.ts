@@ -42,7 +42,8 @@ const EVAL = (ast: MalType, replEnv: Env): MalType => {
       }
     }
     case HASHMAP: {
-      if (ast.value.length === 0) {
+      const entries = Array.from(ast.value.entries());
+      if (entries.length === 0) {
         return ast;
       } else {
         return eval_ast(ast, replEnv);
@@ -123,8 +124,9 @@ function eval_ast(ast: MalType, replEnv: Env): MalType {
       return malVector(ast.value.map((v) => EVAL(v, replEnv)));
     }
     case HASHMAP: {
+      const entries = Array.from(ast.value.entries());
       return malHashMap(
-        ast.value.map(([key, value]) => [key, EVAL(value, replEnv)])
+        entries.map(([key, value]) => [key, EVAL(value, replEnv)])
       );
     }
     default:

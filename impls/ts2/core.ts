@@ -480,6 +480,7 @@ map.set(
   "assoc",
   malFunction(((hm: MalHashMap, ...args: MalType[]) => {
     const createHm = map.get("hash-map")?.value as MalFunctionPrimitive;
+    const hmCopy = malHashMap();
     return malHashMap([
       ...hm.value,
       ...(createHm(...args) as MalHashMap).value,
@@ -492,14 +493,16 @@ map.set(
   malFunction(((hm: MalHashMap, ...args: (MalString | MalKeyword)[]) => {
     const values = hm.value;
     const equal = map.get("=")?.value as MalFunctionPrimitive;
-    const filteredValues = values.filter(([key, value]) => {
-      for (const arg of args) {
-        if (equal(key, arg).value) {
-          return false;
+    const filteredValues = Array.from(values.entries()).filter(
+      ([key, value]) => {
+        for (const arg of args) {
+          if (equal(key, arg).value) {
+            return false;
+          }
         }
+        return true;
       }
-      return true;
-    });
+    );
     return malHashMap(filteredValues);
   }) as MalFunctionPrimitive)
 );
@@ -510,7 +513,7 @@ map.set(
     if ((hm as unknown as MalNil).type === NIL) {
       return malNil();
     }
-    const values = hm.value;
+    const values = Array.from(hm.value.entries());
     const equal = map.get("=")?.value as MalFunctionPrimitive;
     const pair = values.find(([hmKey, value]) => {
       if (equal(hmKey, key).value) {
@@ -540,13 +543,17 @@ map.set(
 map.set(
   "keys",
   malFunction(((hm: MalHashMap) =>
-    malList(hm.value.map((pair) => pair[0]))) as MalFunctionPrimitive)
+    malList(
+      Array.from(hm.value.entries()).map((pair) => pair[0])
+    )) as MalFunctionPrimitive)
 );
 
 map.set(
   "vals",
   malFunction(((hm: MalHashMap) =>
-    malList(hm.value.map((pair) => pair[1]))) as MalFunctionPrimitive)
+    malList(
+      Array.from(hm.value.entries()).map((pair) => pair[1])
+    )) as MalFunctionPrimitive)
 );
 
 map.set(

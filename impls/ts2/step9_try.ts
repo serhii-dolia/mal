@@ -138,8 +138,9 @@ function eval_ast(ast: MalType, replEnv: Env): MalType {
       return malVector(ast.value.map((v) => EVAL(v, replEnv)));
     }
     case HASHMAP: {
+      const entries = Array.from(ast.value.entries());
       return malHashMap(
-        ast.value.map(([key, value]) => [key, EVAL(value, replEnv)])
+        entries.map(([key, value]) => [key, EVAL(value, replEnv)])
       );
     }
     default:
@@ -153,9 +154,16 @@ const EVAL = (ast: MalType, env: Env): MalType => {
       // case FUNCTION:
       // case TCO_FUNCTION:
       //   return ast;
-      case VECTOR:
-      case HASHMAP: {
+      case VECTOR: {
         if (ast.value.length === 0) {
+          return ast;
+        } else {
+          return eval_ast(ast, env);
+        }
+      }
+      case HASHMAP: {
+        const entries = Array.from(ast.value.entries());
+        if (entries.length === 0) {
           return ast;
         } else {
           return eval_ast(ast, env);
