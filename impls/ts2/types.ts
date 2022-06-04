@@ -47,6 +47,7 @@ export type ValueType =
   | typeof FALSE
   | typeof KEYWORD
   | typeof ATOM;
+
 export const malSymbol = (value: MalSymbol["value"]): MalSymbol => ({
   type: SYMBOL,
   value,
@@ -57,18 +58,27 @@ export const malNumber = (value: MalNumber["value"]): MalNumber => ({
   value,
 });
 
-export const malList = (value: MalList["value"]): MalList => ({
+export const malList = (
+  value: MalList["value"],
+  meta: MalList["meta"] = malNil()
+): MalList => ({
   type: LIST,
   value,
+  meta,
 });
 
-export const malVector = (value: MalVector["value"]): MalVector => ({
+export const malVector = (
+  value: MalVector["value"],
+  meta: MalVector["meta"] = malNil()
+): MalVector => ({
   type: VECTOR,
   value,
+  meta,
 });
 
 export const malHashMap = (
-  value: MalHashMap["value"] | HashMapPair[] | [string, MalType][]
+  value: MalHashMap["value"] | HashMapPair[] | [string, MalType][],
+  meta: MalHashMap["meta"] = malNil()
 ): MalHashMap => {
   if (Array.isArray(value)) {
     const map = new Map<string, MalType>();
@@ -78,18 +88,24 @@ export const malHashMap = (
     return {
       type: HASHMAP,
       value: map,
+      meta,
     };
   } else {
     return {
       type: HASHMAP,
       value,
+      meta,
     };
   }
 };
 
-export const malFunction = (value: MalFunction["value"]): MalFunction => ({
+export const malFunction = (
+  value: MalFunction["value"],
+  meta: MalFunction["meta"] = malNil()
+): MalFunction => ({
   type: FUNCTION,
   value,
+  meta,
 });
 
 export const tcoFunction = (
@@ -97,7 +113,8 @@ export const tcoFunction = (
   params: MalTCOFunction["params"],
   env: MalTCOFunction["env"],
   value: MalTCOFunction["value"],
-  isMacro: boolean = false
+  isMacro: boolean = false,
+  meta: MalTCOFunction["meta"] = malNil()
 ): MalTCOFunction => ({
   type: TCO_FUNCTION,
   params,
@@ -105,6 +122,7 @@ export const tcoFunction = (
   env,
   value,
   isMacro,
+  meta,
 });
 
 export const malNil = (): MalNil => ({
@@ -156,16 +174,19 @@ export type MalSymbol<S = string> = {
 export type MalList = {
   type: typeof LIST;
   value: MalType[];
+  meta: MalType;
 };
 
 export type MalVector = {
   type: typeof VECTOR;
   value: MalType[];
+  meta: MalType;
 };
 
 export type MalHashMap = {
   type: typeof HASHMAP;
   value: Map<string, MalType>;
+  meta: MalType;
 };
 
 export type HashMapPair = [MalKeyword | MalString, MalType];
@@ -199,6 +220,7 @@ export type SPECIAL_SYMBOL =
 export interface MalFunction {
   type: typeof FUNCTION;
   value: MalFunctionPrimitive;
+  meta: MalType;
 }
 
 export interface MalTCOFunction {
@@ -208,6 +230,7 @@ export interface MalTCOFunction {
   env: Env;
   value: MalFunction;
   isMacro: boolean;
+  meta: MalType;
 }
 
 export type MalFunctionPrimitive = (...args: MalType[]) => MalType;

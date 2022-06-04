@@ -47,6 +47,7 @@ import {
   NIL,
   STRING,
   SYMBOL,
+  tcoFunction,
   TCO_FUNCTION,
   TRUE,
   ValueType,
@@ -642,12 +643,6 @@ map.set(
     const runOtherFile = (global as any)["run_other_file"] || false;
     rl.pause();
     const query = malStringToString(_);
-    var insert = 0,
-      savedinsert = 0,
-      res,
-      i,
-      savedstr;
-    var term = 13; // carriage return
     process.stdin.pause();
     const fd = fs.openSync("/dev/tty", "r");
 
@@ -657,10 +652,8 @@ map.set(
     // }
 
     let buf = Buffer.alloc(1000);
-    let str = "",
-      read;
-
-    savedstr = "";
+    let str = "";
+    let read;
 
     process.stdout.write(query + " ");
     let closed = false;
@@ -701,7 +694,6 @@ map.set(
       process.stdout.write(new_str);
       str = str + buf.toString();
       str = str.replace(/\0/g, "");
-      insert = str.length;
       //https://github.com/heapwolf/prompt-sync/blob/master/index.js
       buf = Buffer.alloc(1000);
     }
@@ -717,6 +709,39 @@ map.set(
     // throw new MalError("readline sync is hard...");
   }) as MalFunctionPrimitive)
 );
+
+map.set(
+  "meta",
+  malFunction(((
+    _: MalList | MalVector | MalHashMap | MalFunction | MalTCOFunction
+  ): MalType => {
+    return _.meta;
+  }) as MalFunctionPrimitive)
+);
+
+map.set(
+  "with-meta",
+  malFunction(((
+    _: MalList | MalVector | MalHashMap | MalFunction | MalTCOFunction,
+    meta: MalType
+  ) => {
+    switch (_.type) {
+      case LIST:
+        return malList(_.value, meta);
+      case VECTOR:
+        return malVector(_.value, meta);
+      case HASHMAP:
+        return malHashMap(_.value, meta);
+      case FUNCTION:
+        return malFunction(_.value, meta);
+      case TCO_FUNCTION:
+        return tcoFunction(_.ast, _.params, _.env, _.value, _.isMacro, meta);
+    }
+  }) as MalFunctionPrimitive)
+);
+/*
+
+with-meta: this function takes two arguments. The first argument is a mal function/list/vector/hash-map and the second argument is another mal value/type to set as metadata. A copy of the mal function is returned that has its meta attribute set to the second argument. Note that it is important that the environment and macro attribute of mal function are retained when it is copied.*/
 
 const escape_str = (_: string): `"${string}"` => {
   const elements = _.split("");
