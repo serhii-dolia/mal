@@ -94,9 +94,25 @@ const read_form = (
       return read_splice_unquote(_);
     case "@":
       return read_deref(_);
+    case "^":
+      return read_with_meta(_);
     default:
       return read_atom(_);
   }
+};
+
+/**
+ *
+ * @param _ Add a reader-macro that expands the token "^" to return a new list that contains the symbol "with-meta" and the result of reading the next next form (2nd argument) (read_form) and the next form (1st argument) in that order (metadata comes first with the ^ macro and the function second).
+ * @returns
+ */
+
+const read_with_meta = (_: Reader): MalList => {
+  _.next();
+  const meta = read_form(_);
+  _.next();
+  const form = read_form(_);
+  return malList([malSymbol("with-meta"), form, meta]);
 };
 
 const read_deref = (_: Reader): MalList => {
