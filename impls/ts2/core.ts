@@ -690,7 +690,7 @@ map.set(
       rl.resume();
     }
 
-    return read_string_to_mal_string(escape_str(`"${str}"`));
+    return read_string_to_mal_string(`"${str}"`);
 
     //return malString(""); //str);
     // throw new MalError("readline sync is hard...");

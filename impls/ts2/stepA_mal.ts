@@ -302,8 +302,9 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               const firstElement = evaluatedList.value[0];
               if (firstElement.type === FUNCTION) {
                 // case for (+ 1 2)
-                ast = firstElement.value(...evaluatedList.value.slice(1));
-                continue;
+                return firstElement.value(...evaluatedList.value.slice(1));
+                // ast = firstElement.value(...evaluatedList.value.slice(1));
+                // continue;
               } else if (firstElement.type === TCO_FUNCTION) {
                 ast = firstElement.ast;
                 env = new Env(
@@ -467,10 +468,15 @@ rep(`(println (str "Mal [" *host-language* "]"))`);
 if (process.argv.length > 2) {
   (global as any)["run_other_file"] = true;
   const paths = process.argv.slice(2);
-  for (const path of paths) {
-    rep(`(load-file "${path}")`);
+  try {
+    for (const path of paths) {
+      rep(`(load-file "${path}")`);
+    }
+    process.exit(0);
+  } catch (e) {
+    e;
+    process.exit(0);
   }
-  process.exit(0);
 } else {
   start();
 }
