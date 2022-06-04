@@ -692,14 +692,20 @@ map.set(
       case LIST:
         return malList([...args.reverse(), ..._.value]);
       case VECTOR:
-        return malList([..._.value, ...args]);
+        return malVector([..._.value, ...args]);
     }
   }) as MalFunctionPrimitive)
 );
 
 map.set("string?", getCheckFunction([STRING]));
 map.set("number?", getCheckFunction([NUMBER]));
-map.set("fn?", getCheckFunction([FUNCTION, TCO_FUNCTION]));
+map.set(
+  "fn?",
+  malFunction(
+    (_: MalType): MalBoolean =>
+      malBoolean(_.type === FUNCTION || (_.type === TCO_FUNCTION && !_.isMacro))
+  )
+); //getCheckFunction([FUNCTION, TCO_FUNCTION]));
 
 map.set(
   "macro?",
