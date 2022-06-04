@@ -164,6 +164,24 @@ map.set(
       return malFalse();
     } else if (arg1.type === LIST || arg1.type === VECTOR) {
       return compare_list_or_vector(arg1, arg2 as MalList | MalVector);
+    } else if (arg1.type === HASHMAP) {
+      const hm1 = arg1.value;
+      const hm2 = (arg2 as MalHashMap).value;
+      const e1 = Array.from(hm1.entries());
+      const e2 = Array.from(hm2.entries());
+      if (e1.length === e2.length) {
+        for (const [k1, v1] of e1) {
+          const v2 = hm2.get(k1);
+          if (!v2) {
+            return malFalse();
+          }
+          if (compare(v2, v1).type === FALSE) {
+            return malFalse();
+          }
+        }
+        return malTrue();
+      }
+      return malFalse();
     } else if (arg1.type === STRING) {
       return malBoolean(pr_str(arg1, true) === pr_str(arg2 as MalString, true));
     } else {
@@ -442,7 +460,10 @@ map.set(
 
 map.set(
   "keyword",
-  malFunction(((_: MalString): MalKeyword => {
+  malFunction(((_: MalString | MalKeyword): MalKeyword => {
+    if (_.type === KEYWORD) {
+      return _;
+    }
     return malKeyword(`:${malStringToString(_)}`);
   }) as MalFunctionPrimitive)
 );
