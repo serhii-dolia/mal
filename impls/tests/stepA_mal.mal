@@ -3,13 +3,6 @@
 ;;; interop tests.
 ;;;
 
-
-;;
-;; Testing readline
-(readline "mal-user> ")
-"hello"
-;=>"\"hello\""
-
 ;;
 ;; Testing *host-language*
 ;;; each impl is different, but this should return false

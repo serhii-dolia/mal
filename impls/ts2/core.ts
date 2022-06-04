@@ -1,12 +1,5 @@
-//@ts-ignore
-import * as readline from "node:readline/promises";
-
 import { pr_str } from "./printer.js";
-import {
-  determine_atom,
-  read_str,
-  read_string_to_mal_string,
-} from "./reader.js";
+import { read_str, read_string_to_mal_string } from "./reader.js";
 
 import {
   ATOM,
@@ -45,6 +38,7 @@ import {
   malVector,
   MalVector,
   NIL,
+  NUMBER,
   STRING,
   SYMBOL,
   tcoFunction,
@@ -582,62 +576,6 @@ map.set(
 );
 
 map.set(
-  "time-ms",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
-  "meta",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
-  "with-meta",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
-  "fn?",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
-  "string?",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
-  "number?",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
-  "seq",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
-  "conj",
-  malFunction(() => {
-    throw new MalError(malString("Not implemented"));
-  })
-);
-
-map.set(
   "readline",
   malFunction(((_: MalString) => {
     const runOtherFile = (global as any)["run_other_file"] || false;
@@ -739,9 +677,61 @@ map.set(
     }
   }) as MalFunctionPrimitive)
 );
-/*
 
-with-meta: this function takes two arguments. The first argument is a mal function/list/vector/hash-map and the second argument is another mal value/type to set as metadata. A copy of the mal function is returned that has its meta attribute set to the second argument. Note that it is important that the environment and macro attribute of mal function are retained when it is copied.*/
+map.set(
+  "time-ms",
+  malFunction((): MalNumber => {
+    return malNumber(Date.now());
+  })
+);
+
+map.set(
+  "conj",
+  malFunction(((_: MalList | MalVector, ...args: MalType[]) => {
+    switch (_.type) {
+      case LIST:
+        return malList([...args.reverse(), ..._.value]);
+      case VECTOR:
+        return malList([..._.value, ...args]);
+    }
+  }) as MalFunctionPrimitive)
+);
+
+map.set("string?", getCheckFunction([STRING]));
+map.set("number?", getCheckFunction([NUMBER]));
+map.set("fn?", getCheckFunction([FUNCTION, TCO_FUNCTION]));
+
+map.set(
+  "macro?",
+  malFunction(
+    (_: MalType): MalBoolean => malBoolean(_.type === TCO_FUNCTION && _.isMacro)
+  )
+);
+
+map.set(
+  "seq",
+  malFunction(((_: MalList | MalVector | MalString | MalNil) => {
+    switch (_.type) {
+      case LIST:
+        if (_.value.length === 0) {
+          return malNil();
+        }
+        return _;
+      case VECTOR:
+        if (_.value.length === 0) {
+          return malNil();
+        }
+        return malList(_.value);
+      case STRING:
+        if (_.value === "") {
+          return malNil();
+        }
+        return malList(_.value.split("").map(malString));
+      case NIL:
+        return _;
+    }
+  }) as MalFunctionPrimitive)
+);
 
 const escape_str = (_: string): `"${string}"` => {
   const elements = _.split("");
