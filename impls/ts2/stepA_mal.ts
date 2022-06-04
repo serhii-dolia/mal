@@ -265,10 +265,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             }
             case IF: {
               const ifListValues = ast.value as unknown as IfList;
-              const evaluatedCondition = EVAL(
-                eval_ast(ifListValues[1], env),
-                env
-              );
+              const evaluatedCondition = EVAL(ifListValues[1], env);
               if (![NIL, FALSE].includes(evaluatedCondition.type)) {
                 //TCO magic
                 ast = ifListValues[2]; //EVAL(ifListValues[2], env);
