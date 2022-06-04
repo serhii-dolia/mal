@@ -44,6 +44,7 @@ import {
   malString,
   CatchList,
   malBoolean,
+  malNumber,
 } from "./types.js";
 import { Env } from "./env.js";
 import core, { ile } from "./core.js";
@@ -471,7 +472,18 @@ if (process.argv.length > 2) {
   (global as any)["run_other_file"] = true;
   const path = process.argv[2];
   const argv = process.argv.slice(3);
-  REPL_ENV.set("*ARGV*", malList(argv.map(determine_atom)));
+  REPL_ENV.set(
+    "*ARGV*",
+    malList(
+      argv.map((_) => {
+        const n = parseInt(_);
+        if (Number.isNaN(n)) {
+          return malString(_);
+        }
+        return malNumber(n);
+      })
+    )
+  );
   try {
     rep(`(load-file "${path}")`);
 

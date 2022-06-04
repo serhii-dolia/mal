@@ -1,5 +1,5 @@
 import { pr_str } from "./printer.js";
-import { read_str } from "./reader.js";
+import { determine_atom, read_str } from "./reader.js";
 import {
   DEF,
   DefList,
@@ -30,6 +30,8 @@ import {
   tcoFunction,
   VECTOR,
   TCO_FUNCTION,
+  malString,
+  malNumber,
 } from "./types.js";
 import { Env } from "./env.js";
 import core from "./core.js";
@@ -205,6 +207,8 @@ REPL_ENV.set(
   malFunction((value: MalType) => EVAL(value, REPL_ENV))
 );
 
+REPL_ENV.set("*ARGV*", malList([]));
+
 const rep = (_: string) => {
   PRINT(EVAL(READ(_), REPL_ENV));
 };
@@ -226,11 +230,28 @@ rep(
 
 if (process.argv.length > 2) {
   (global as any)["run_other_file"] = true;
-  const paths = process.argv.slice(2);
-  for (const path of paths) {
+  const path = process.argv[2];
+  const argv = process.argv.slice(3);
+  REPL_ENV.set(
+    "*ARGV*",
+    malList(
+      argv.map((_) => {
+        const n = parseInt(_);
+        if (Number.isNaN(n)) {
+          return malString(_);
+        }
+        return malNumber(n);
+      })
+    )
+  );
+  try {
     rep(`(load-file "${path}")`);
+
+    process.exit(0);
+  } catch (e) {
+    e;
+    process.exit(0);
   }
-  process.exit(0);
 } else {
   start();
 }
