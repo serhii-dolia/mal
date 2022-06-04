@@ -1,5 +1,9 @@
 import { pr_str } from "./printer.js";
-import { read_str, read_string_to_mal_string } from "./reader.js";
+import {
+  determine_atom,
+  read_str,
+  read_string_to_mal_string,
+} from "./reader.js";
 import {
   DEF,
   DefList,
@@ -433,6 +437,7 @@ REPL_ENV.set(
 
 REPL_ENV.set("*host-language*", malString("ts2"));
 
+REPL_ENV.set("*ARGV*", malList([]));
 // REPL_ENV.set(
 //   "quote",
 //   malFunction((value: MalType) => value)
@@ -464,11 +469,12 @@ rep(`(println (str "Mal [" *host-language* "]"))`);
 
 if (process.argv.length > 2) {
   (global as any)["run_other_file"] = true;
-  const paths = process.argv.slice(2);
+  const path = process.argv[2];
+  const argv = process.argv.slice(3);
+  REPL_ENV.set("*ARGV*", malList(argv.map(determine_atom)));
   try {
-    for (const path of paths) {
-      rep(`(load-file "${path}")`);
-    }
+    rep(`(load-file "${path}")`);
+
     process.exit(0);
   } catch (e) {
     e;
