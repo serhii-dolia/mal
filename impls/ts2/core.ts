@@ -588,7 +588,7 @@ map.set(
     let str = "";
 
     process.stdout.write(query + " ");
-    let closed = false;
+
     while (true) {
       fs.readSync(fd, buf, 0, 1, null);
       //ctr-c
@@ -597,15 +597,11 @@ map.set(
           process.exit(0);
         }
         process.stdout.write("\n");
-        fs.closeSync(fd);
-        closed = true;
         break;
       }
       //new line for tests
       if (buf[0] == 10) {
         process.stdout.write("\n");
-        fs.closeSync(fd);
-        closed = true;
         break;
       }
 
@@ -615,8 +611,6 @@ map.set(
           process.exit(0);
         }
         process.stdout.write("\n");
-        fs.closeSync(fd);
-        closed = true;
         break;
       }
 
@@ -631,10 +625,8 @@ map.set(
       //https://github.com/heapwolf/prompt-sync/blob/master/index.js
       buf = Buffer.alloc(1);
     }
-    if (!closed) {
-      process.stdout.write("\n");
-      fs.closeSync(fd);
-    }
+    process.stdout.write("\n");
+    fs.closeSync(fd);
     return read_string_to_mal_string(`${escape_str(`${str}`)}`);
   }) as MalFunctionPrimitive)
 );
