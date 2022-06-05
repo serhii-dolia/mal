@@ -11,6 +11,7 @@ import {
   MalType,
   NIL,
   NUMBER,
+  reviveHMKey,
   STRING,
   StringElement,
   SYMBOL,
@@ -45,12 +46,10 @@ export const pr_str = (_: MalType, print_readably: boolean): string => {
       return `{${Array.from(_.value.entries())
         .map(
           (x) =>
-            `${pr_str(
-              x[0].startsWith(":")
-                ? malKeyword(x[0] as `:${string}`)
-                : malString(x[0]),
+            `${pr_str(reviveHMKey(x[0]), print_readably)} ${pr_str(
+              x[1],
               print_readably
-            )} ${pr_str(x[1], print_readably)}`
+            )}`
         )
         .join(" ")}}`;
     case FUNCTION:

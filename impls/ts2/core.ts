@@ -3,6 +3,7 @@ import { read_str, read_string_to_mal_string } from "./reader.js";
 
 import {
   ATOM,
+  createHMKey,
   FALSE,
   FUNCTION,
   HASHMAP,
@@ -19,6 +20,7 @@ import {
   MalFunctionPrimitive,
   MalHashMap,
   malHashMap,
+  MalHashMapValue,
   malKeyword,
   MalKeyword,
   MalList,
@@ -505,13 +507,16 @@ map.set(
     if (args.length % 2 !== 0) {
       throw new MalError("assoc: uneven number of args!!!");
     }
-    const newMap = new Map<string, MalType>();
+    const newMap: MalHashMapValue = new Map();
     for (const [k, v] of hm.value.entries()) {
       newMap.set(k, v);
     }
 
     for (let i = 0; i < args.length; i += 2) {
-      newMap.set(args[i].value as string, args[i + 1]);
+      if (args[i].type !== STRING && args[i].type !== KEYWORD) {
+        throw new MalError("Hashmap key should be string or keyword");
+      }
+      newMap.set(createHMKey(args[i] as MalString | MalKeyword), args[i + 1]);
     }
     return malHashMap(newMap);
   }) as MalFunctionPrimitive)
@@ -520,14 +525,14 @@ map.set(
 map.set(
   "dissoc",
   malFunction(((hm: MalHashMap, ...args: (MalString | MalKeyword)[]) => {
-    const newMap = new Map<string, MalType>();
+    const newMap: MalHashMapValue = new Map();
     for (const [k, v] of hm.value.entries()) {
       newMap.set(k, v);
     }
 
     for (const arg of args) {
-      if (newMap.get(arg.value)) {
-        newMap.delete(arg.value);
+      if (newMap.get(createHMKey(arg))) {
+        newMap.delete(createHMKey(arg));
       }
     }
 
@@ -541,7 +546,7 @@ map.set(
     if ((hm as unknown as MalNil).type === NIL) {
       return malNil();
     }
-    const res = hm.value.get(key.value);
+    const res = hm.value.get(createHMKey(key));
     return res ?? malNil();
   }) as MalFunctionPrimitive)
 );
@@ -549,7 +554,7 @@ map.set(
 map.set(
   "contains?",
   malFunction(((hm: MalHashMap, key: MalString | MalKeyword) => {
-    const value = hm.value.get(key.value);
+    const value = hm.value.get(createHMKey(key));
     if (value) {
       return malTrue();
     }
@@ -561,18 +566,21 @@ map.set(
   "keys",
   malFunction(((hm: MalHashMap) =>
     malList(
-      Array.from(hm.value.keys()).map((v) =>
-        v.startsWith(":") ? malKeyword(v as `:${string}`) : malString(v)
-      )
+      Array.from(hm.value.keys()).map((v) => {
+        const [value, end] = v.split("-");
+        if (end === "keyword") {
+          return malKeyword(value as `:${string}`);
+        } else {
+          return malString(value);
+        }
+      })
     )) as MalFunctionPrimitive)
 );
 
 map.set(
   "vals",
   malFunction(((hm: MalHashMap) =>
-    malList(
-      Array.from(hm.value.entries()).map((pair) => pair[1])
-    )) as MalFunctionPrimitive)
+    malList(Array.from(hm.value.values()))) as MalFunctionPrimitive)
 );
 
 map.set(

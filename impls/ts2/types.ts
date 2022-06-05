@@ -77,13 +77,13 @@ export const malVector = (
 });
 
 export const malHashMap = (
-  value: MalHashMap["value"] | HashMapPair[] | [string, MalType][],
+  value: MalHashMap["value"] | HashMapPair[],
   meta: MalHashMap["meta"] = malNil()
 ): MalHashMap => {
   if (Array.isArray(value)) {
-    const map = new Map<string, MalType>();
+    const map: MalHashMap["value"] = new Map();
     for (const [k, v] of value) {
-      map.set(typeof k === "string" ? k : k.value, v);
+      map.set(createHMKey(k), v);
     }
     return {
       type: HASHMAP,
@@ -185,8 +185,30 @@ export type MalVector = {
 
 export type MalHashMap = {
   type: typeof HASHMAP;
-  value: Map<string, MalType>;
+  value: MalHashMapValue;
   meta: MalType;
+};
+
+export type MalHashMapValue = Map<
+  `${string}-keyword` | `${string}-string`,
+  MalType
+>;
+
+export const createHMKey = (
+  _: MalString | MalKeyword
+): `${string}-${"string" | "keyword"}` => {
+  return `${_.value}-${_.type === STRING ? "string" : "keyword"}`;
+};
+
+export const reviveHMKey = (
+  _: `${string}-${"string" | "keyword"}`
+): MalKeyword | MalString => {
+  const [value, end] = _.split("-");
+  if (end === "keyword") {
+    return malKeyword(value as `:${string}`);
+  } else {
+    return malString(value);
+  }
 };
 
 export type HashMapPair = [MalKeyword | MalString, MalType];
