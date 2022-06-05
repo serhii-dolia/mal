@@ -445,7 +445,7 @@ REPL_ENV.set("*ARGV*", malList([]));
 // );
 
 const rep = (_: string) => {
-  PRINT(EVAL(READ(_), REPL_ENV));
+  return PRINT(EVAL(READ(_), REPL_ENV));
 };
 
 const start = async () => {

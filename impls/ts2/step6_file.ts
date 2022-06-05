@@ -210,13 +210,13 @@ REPL_ENV.set(
 REPL_ENV.set("*ARGV*", malList([]));
 
 const rep = (_: string) => {
-  PRINT(EVAL(READ(_), REPL_ENV));
+  return PRINT(EVAL(READ(_), REPL_ENV));
 };
 
 const start = async () => {
   while (true) {
     try {
-      rep(await rl.question("input> "));
+      console.log(rep(await rl.question("input> ")));
     } catch (e: any) {
       console.log(e.message);
       await start();
