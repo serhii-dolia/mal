@@ -579,24 +579,18 @@ map.set(
   "readline",
   malFunction(((_: MalString) => {
     const runOtherFile = (global as any)["run_other_file"] || false;
-    rl.pause();
+    // rl.pause();
     const query = malStringToString(_);
-    process.stdin.pause();
+    //process.stdin.pause();
     const fd = fs.openSync(`/proc/${process.pid}/fd/0`, "r");
-
-    // var wasRaw = process.stdin.isRaw;
-    // if (!wasRaw) {
-    //   process.stdin.setRawMode && process.stdin.setRawMode(true);
-    // }
 
     let buf = Buffer.alloc(1);
     let str = "";
-    let read;
 
     process.stdout.write(query + " ");
     let closed = false;
     while (true) {
-      read = fs.readSync(fd, buf, 0, 1, null);
+      fs.readSync(fd, buf, 0, 1, null);
       //ctr-c
       if (buf[0] == 3) {
         if (runOtherFile) {
@@ -604,26 +598,15 @@ map.set(
         }
         process.stdout.write("\n");
         fs.closeSync(fd);
-        rl.resume();
         closed = true;
         break;
-        // process.stdout.write("^C\n");
-        // str = "";
-        // break;
       }
       //new line for tests
       if (buf[0] == 10) {
-        // if (runOtherFile) {
-        //   process.exit(0);
-        // }
         process.stdout.write("\n");
         fs.closeSync(fd);
-        rl.resume();
         closed = true;
         break;
-        // process.stdout.write("^C\n");
-        // str = "";
-        // break;
       }
 
       // catch a ^D and exit
@@ -633,7 +616,6 @@ map.set(
         }
         process.stdout.write("\n");
         fs.closeSync(fd);
-        rl.resume();
         closed = true;
         break;
       }
@@ -653,14 +635,7 @@ map.set(
       process.stdout.write("\n");
       fs.closeSync(fd);
     }
-    rl.resume();
-    if (str === `1;'`) {
-      str;
-    }
     return read_string_to_mal_string(`${escape_str(`${str}`)}`);
-
-    //return malString(""); //str);
-    // throw new MalError("readline sync is hard...");
   }) as MalFunctionPrimitive)
 );
 
