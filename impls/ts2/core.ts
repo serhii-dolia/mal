@@ -613,9 +613,9 @@ map.set(
       }
       //new line for tests
       if (buf[0] == 10) {
-        if (runOtherFile) {
-          process.exit(0);
-        }
+        // if (runOtherFile) {
+        //   process.exit(0);
+        // }
         process.stdout.write("\n");
         fs.closeSync(fd);
         rl.resume();
@@ -654,8 +654,10 @@ map.set(
       fs.closeSync(fd);
     }
     rl.resume();
-
-    return read_string_to_mal_string(`"${str}"`);
+    if (str === `1;'`) {
+      str;
+    }
+    return read_string_to_mal_string(`${escape_str(`${str}`)}`);
 
     //return malString(""); //str);
     // throw new MalError("readline sync is hard...");
