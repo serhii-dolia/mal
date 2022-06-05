@@ -326,7 +326,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
 };
 
 const PRINT = (_: MalType) => {
-  console.log(pr_str(_, true));
+  return pr_str(_, true);
 };
 
 const REPL_ENV = new Env(null);
@@ -451,7 +451,7 @@ const rep = (_: string) => {
 const start = async () => {
   while (true) {
     try {
-      rep(await rl.question("input> "));
+      console.log(rep(await rl.question("input> ")));
     } catch (e: any) {
       console.log(e.message);
       await start();
@@ -466,7 +466,6 @@ rep(
 rep(
   "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))"
 );
-rep(`(println (str "Mal [" *host-language* "]"))`);
 
 if (process.argv.length > 2) {
   (global as any)["run_other_file"] = true;
@@ -493,5 +492,6 @@ if (process.argv.length > 2) {
     process.exit(0);
   }
 } else {
+  rep(`(println (str "Mal [" *host-language* "]"))`);
   start();
 }

@@ -166,7 +166,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
 };
 
 const PRINT = (_: MalType) => {
-  console.log(pr_str(_, true));
+  return pr_str(_, true);
 };
 
 function eval_ast(ast: MalList, replEnv: Env): MalList;
