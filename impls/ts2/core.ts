@@ -582,23 +582,37 @@ map.set(
     rl.pause();
     const query = malStringToString(_);
     process.stdin.pause();
-    const fd = fs.openSync("/dev/tty", "r");
+    const fd = fs.openSync(`/proc/${process.pid}/fd/0`, "r");
 
     // var wasRaw = process.stdin.isRaw;
     // if (!wasRaw) {
     //   process.stdin.setRawMode && process.stdin.setRawMode(true);
     // }
 
-    let buf = Buffer.alloc(1000);
+    let buf = Buffer.alloc(1);
     let str = "";
     let read;
 
     process.stdout.write(query + " ");
     let closed = false;
     while (true) {
-      read = fs.readSync(fd, buf, 0, 1000, null);
+      read = fs.readSync(fd, buf, 0, 1, null);
       //ctr-c
       if (buf[0] == 3) {
+        if (runOtherFile) {
+          process.exit(0);
+        }
+        process.stdout.write("\n");
+        fs.closeSync(fd);
+        rl.resume();
+        closed = true;
+        break;
+        // process.stdout.write("^C\n");
+        // str = "";
+        // break;
+      }
+      //new line for tests
+      if (buf[0] == 10) {
         if (runOtherFile) {
           process.exit(0);
         }
@@ -633,13 +647,13 @@ map.set(
       str = str + buf.toString();
       str = str.replace(/\0/g, "");
       //https://github.com/heapwolf/prompt-sync/blob/master/index.js
-      buf = Buffer.alloc(1000);
+      buf = Buffer.alloc(1);
     }
     if (!closed) {
       process.stdout.write("\n");
       fs.closeSync(fd);
-      rl.resume();
     }
+    rl.resume();
 
     return read_string_to_mal_string(`"${str}"`);
 
