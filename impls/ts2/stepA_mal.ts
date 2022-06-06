@@ -237,9 +237,15 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             case DEF_MACRO: {
               const [, varName, varValue] = ast.value as DefList;
               const evaluatedValue = EVAL(varValue, env) as MalTCOFunction;
-              evaluatedValue.isMacro = true;
-              env.set(varName.value, evaluatedValue);
-              return evaluatedValue;
+              const newMacroFunc = tcoFunction(
+                evaluatedValue.ast,
+                evaluatedValue.params,
+                evaluatedValue.env,
+                malFunction(evaluatedValue.value.value.bind(null)),
+                true
+              );
+              env.set(varName.value, newMacroFunc);
+              return newMacroFunc;
             }
 
             case "macroexpand": {

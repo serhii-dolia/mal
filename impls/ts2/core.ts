@@ -661,10 +661,18 @@ map.set(
         return malVector(_.value, meta);
       case HASHMAP:
         return malHashMap(_.value, meta);
+      // .bind "clones" a function
       case FUNCTION:
-        return malFunction(_.value, meta);
+        return malFunction(_.value.bind(null), meta);
       case TCO_FUNCTION:
-        return tcoFunction(_.ast, _.params, _.env, _.value, _.isMacro, meta);
+        return tcoFunction(
+          _.ast,
+          _.params,
+          _.env,
+          malFunction(_.value.value.bind(null)),
+          _.isMacro,
+          meta
+        );
     }
   }) as MalFunctionPrimitive)
 );

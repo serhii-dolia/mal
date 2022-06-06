@@ -213,7 +213,7 @@ export const reviveHMKey = (
 
 export type HashMapPair = [MalKeyword | MalString, MalType];
 
-export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalNumber];
+export type DefList = [MalSymbol<typeof DEF>, MalSymbol, MalType];
 export type LetList = [MalSymbol<typeof LET>, MalList, MalType];
 export type DoList = [MalSymbol<typeof DO>, ...MalType[]];
 export type IfList =
