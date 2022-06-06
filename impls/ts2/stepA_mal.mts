@@ -29,8 +29,6 @@ import {
   malSymbol,
   DEF_MACRO,
   MalTCOFunction,
-  MalHashMap,
-  MalSingleType,
   malVector,
   malHashMap,
   TRY,
