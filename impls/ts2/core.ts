@@ -1,5 +1,11 @@
 import { pr_str } from "./printer.js";
-import { read_str, read_string_to_mal_string } from "./reader.js";
+import {
+  determine_atom,
+  read_str,
+  read_string_to_mal_string,
+} from "./reader.js";
+
+import * as vm from "node:vm";
 
 import {
   ATOM,
@@ -737,6 +743,35 @@ map.set(
     }
   }) as MalFunctionPrimitive)
 );
+
+map.set(
+  "js-eval",
+  malFunction(((_: MalString): MalType => {
+    try {
+      const result = vm.runInContext(_.value, vm.createContext({}));
+      return readJsValue(result);
+    } catch (e: any) {
+      throw new MalError("couldn't run the js code with error", e.message);
+    }
+  }) as MalFunctionPrimitive)
+);
+
+const readJsValue = (_: any): MalType => {
+  if (Array.isArray(_)) {
+    return malList(_.map(readJsValue));
+  }
+  if (typeof _ === "object") {
+    const hMap: MalHashMapValue = new Map();
+    for (const key of Object.keys(_)) {
+      hMap.set(createHMKey(malString(key as string)), readJsValue(_[key]));
+    }
+    return malHashMap(hMap);
+  }
+  if (_ === undefined || _ == null) {
+    return malNil();
+  }
+  return determine_atom(typeof _ === "string" ? `"${_}"` : _.toString());
+};
 
 const escape_str = (_: string): `"${string}"` => {
   const elements = _.split("");

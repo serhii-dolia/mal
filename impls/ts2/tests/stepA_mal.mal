@@ -1,0 +1,22 @@
+;; Testing basic JS interop
+
+(js-eval "7")
+;=>7
+
+(js-eval "'7'")
+;=>"7"
+
+(js-eval "123 == 123")
+;=>true
+
+(js-eval "123 == 456")
+;=>false
+
+(js-eval "[7,8,9]")
+;=>(7 8 9)
+
+(js-eval "({abc: 789})")
+;=>{"abc" 789}
+
+(js-eval "\"This sentence has five words\".split(\" \").map(x => `*${x.length}*`).join(\" \")")
+;=>"*4* *8* *3* *4* *5*"
