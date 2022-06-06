@@ -162,10 +162,12 @@ function eval_ast(ast: MalType, replEnv: Env): MalType {
       return malVector(ast.value.map((v) => EVAL(v, replEnv)));
     }
     case HASHMAP: {
-      const entries = Array.from(ast.value.entries());
-      return malHashMap(
-        entries.map(([key, value]) => [key, EVAL(value, replEnv)])
-      );
+      const newMap = new Map();
+      for (const [k, v] of ast.value.entries()) {
+        newMap.set(k, EVAL(v, replEnv));
+      }
+
+      return malHashMap(newMap);
     }
     default:
       return ast;
