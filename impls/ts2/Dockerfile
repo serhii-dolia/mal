@@ -1,12 +1,19 @@
-FROM node:18-alpine as build
+FROM ubuntu:22.04
 
-LABEL author="Serhii Dolia <serhii.dolia@gmail.com>"
+##########################################################
+# General requirements for testing or common across many
+# implementations
+##########################################################
 
+RUN apt-get -y update
+
+# Required for running tests
+RUN apt-get -y install make python3 python-is-python3 curl
+
+RUN mkdir -p /mal
 WORKDIR /mal
-COPY . .
-RUN npm install
-RUN npm run build
 
-FROM node:18-alpine
+RUN apt-get -y install gnupg
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 
-COPY --from=build mal/stepA_mal.js mal/core.js mal/env.js mal/mal_error.js mal/printer.js mal/reader.js mal/readline.js mal/types.js ./
+RUN apt-get -y install nodejs
