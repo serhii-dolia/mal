@@ -1,5 +1,5 @@
-import { pr_str } from "./printer.js";
-import { read_str, read_string_to_mal_string } from "./reader.js";
+import { pr_str } from "./printer.mjs";
+import { read_str } from "./reader.mjs";
 import {
   DEF,
   DefList,
@@ -35,15 +35,11 @@ import {
   MalSingleType,
   malVector,
   malHashMap,
-  TRY,
-  TryList,
-  malString,
-  CatchList,
-} from "./types.js";
-import { Env } from "./env.js";
-import core, { ile } from "./core.js";
-import { MalError } from "./mal_error.js";
-import { rl } from "./readline.js";
+} from "./types.mjs";
+import { Env } from "./env.mjs";
+import core, { ile } from "./core.mjs";
+import { MalError } from "./mal_error.mjs";
+import { rl } from "./readline.mjs";
 
 const READ = (_: string): MalType => {
   return read_str(_);
@@ -240,22 +236,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               return macroexpand(ast.value[1], env);
             }
 
-            case TRY: {
-              const [, toEvaluate, catchList] = ast.value as TryList;
-              try {
-                return EVAL(toEvaluate, env);
-              } catch (e: any) {
-                return EVAL(
-                  (catchList.value as CatchList)[2],
-                  new Env(
-                    env,
-                    [(catchList.value as CatchList)[1]],
-                    [malString(e.message)]
-                  )
-                );
-              }
-            }
-
             case DO: {
               const doListValues = ast.value as unknown as DoList;
               doListValues.slice(1, -1).map<MalType>((el) => EVAL(el, env));
@@ -447,7 +427,7 @@ const start = async () => {
     try {
       rep(await rl.question("input> "));
     } catch (e: any) {
-      console.log("Exception:", e.message);
+      console.log(e.message);
       await start();
     }
   }

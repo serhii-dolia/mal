@@ -1,4 +1,4 @@
-import { MalError } from "./mal_error.js";
+import { MalError } from "./mal_error.mjs";
 import {
   HashMapPair,
   KEYWORD,
@@ -25,7 +25,7 @@ import {
   BackSlash,
   LetterN,
   DoubleQuote,
-} from "./types.js";
+} from "./types.mjs";
 
 const LEFT_PAREN = "(";
 const LEFT_SQUARE_BRACKET = "[";

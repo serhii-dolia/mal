@@ -18,7 +18,7 @@ import {
   TCO_FUNCTION,
   TRUE,
   VECTOR,
-} from "./types.js";
+} from "./types.mjs";
 
 export const pr_str = (_: MalType, print_readably: boolean): string => {
   switch (_.type) {

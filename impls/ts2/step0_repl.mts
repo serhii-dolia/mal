@@ -1,4 +1,4 @@
-import { rl } from "./readline.js";
+import { rl } from "./readline.mjs";
 
 const READ = (_: string) => {
   return _;

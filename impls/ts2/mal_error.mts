@@ -1,6 +1,5 @@
-import core from "./core.js";
-import { pr_str } from "./printer.js";
-import { MalFunction, malString, MalType } from "./types.js";
+import core from "./core.mjs";
+import { MalFunction, malString, MalType } from "./types.mjs";
 
 export class MalError extends Error {
   constructor(..._: (MalType | string)[]) {

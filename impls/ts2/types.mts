@@ -1,5 +1,4 @@
-import { Env } from "./env";
-import { read_string_to_mal_string } from "./reader.js";
+import { Env } from "./env.mjs";
 
 export const NUMBER: unique symbol = Symbol("number");
 export const SYMBOL: unique symbol = Symbol("symbol");

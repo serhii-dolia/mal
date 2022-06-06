@@ -1,5 +1,5 @@
-import { pr_str } from "./printer.js";
-import { read_str } from "./reader.js";
+import { pr_str } from "./printer.mjs";
+import { read_str } from "./reader.mjs";
 import {
   FUNCTION,
   HASHMAP,
@@ -22,9 +22,9 @@ import {
   malVector,
   SYMBOL,
   VECTOR,
-} from "./types.js";
-import { MalError } from "./mal_error.js";
-import { rl } from "./readline.js";
+} from "./types.mjs";
+import { MalError } from "./mal_error.mjs";
+import { rl } from "./readline.mjs";
 
 const READ = (_: string): MalType => {
   return read_str(_);

@@ -1,9 +1,9 @@
-import { pr_str } from "./printer.js";
+import { pr_str } from "./printer.mjs";
 import {
   determine_atom,
   read_str,
   read_string_to_mal_string,
-} from "./reader.js";
+} from "./reader.mjs";
 
 import * as vm from "node:vm";
 
@@ -54,11 +54,11 @@ import {
   TRUE,
   ValueType,
   VECTOR,
-} from "./types.js";
-import { MalError } from "./mal_error.js";
+} from "./types.mjs";
+import { MalError } from "./mal_error.mjs";
 
 import * as fs from "node:fs";
-import { rl } from "./readline.js";
+import { rl } from "./readline.mjs";
 
 const getCheckFunction = (type: ValueType[]): MalFunction =>
   malFunction((_: MalType) => {
@@ -636,7 +636,7 @@ map.set(
       process.stdout.write(new_str);
       str = str + buf.toString();
       str = str.replace(/\0/g, "");
-      //https://github.com/heapwolf/prompt-sync/blob/master/index.js
+      //https://github.com/heapwolf/prompt-sync/blob/master/index.mjs
       buf = Buffer.alloc(1);
     }
     process.stdout.write("\n");

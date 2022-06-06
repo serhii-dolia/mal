@@ -1,5 +1,5 @@
-import { MalError } from "./mal_error.js";
-import { malList, MalSymbol, MalType } from "./types.js";
+import { MalError } from "./mal_error.mjs";
+import { malList, MalSymbol, MalType } from "./types.mjs";
 
 export class Env {
   private data: { [key: string]: MalType } = {};

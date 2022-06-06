@@ -1,5 +1,9 @@
-import { pr_str } from "./printer.js";
-import { read_str } from "./reader.js";
+import { pr_str } from "./printer.mjs";
+import {
+  determine_atom,
+  read_str,
+  read_string_to_mal_string,
+} from "./reader.mjs";
 import {
   DEF,
   DefList,
@@ -35,11 +39,17 @@ import {
   MalSingleType,
   malVector,
   malHashMap,
-} from "./types.js";
-import { Env } from "./env.js";
-import core, { ile } from "./core.js";
-import { MalError } from "./mal_error.js";
-import { rl } from "./readline.js";
+  TRY,
+  TryList,
+  malString,
+  CatchList,
+  malBoolean,
+  malNumber,
+} from "./types.mjs";
+import { Env } from "./env.mjs";
+import core, { ile } from "./core.mjs";
+import { MalError } from "./mal_error.mjs";
+import { rl } from "./readline.mjs";
 
 const READ = (_: string): MalType => {
   return read_str(_);
@@ -227,13 +237,35 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             case DEF_MACRO: {
               const [, varName, varValue] = ast.value as DefList;
               const evaluatedValue = EVAL(varValue, env) as MalTCOFunction;
-              evaluatedValue.isMacro = true;
-              env.set(varName.value, evaluatedValue);
-              return evaluatedValue;
+              const newMacroFunc = tcoFunction(
+                evaluatedValue.ast,
+                evaluatedValue.params,
+                evaluatedValue.env,
+                malFunction(evaluatedValue.value.value.bind(null)),
+                true
+              );
+              env.set(varName.value, newMacroFunc);
+              return newMacroFunc;
             }
 
             case "macroexpand": {
               return macroexpand(ast.value[1], env);
+            }
+
+            case TRY: {
+              const [, toEvaluate, catchList] = ast.value as TryList;
+              try {
+                return EVAL(toEvaluate, env);
+              } catch (e: any) {
+                return EVAL(
+                  (catchList.value as CatchList)[2],
+                  new Env(
+                    env,
+                    [(catchList.value as CatchList)[1]],
+                    [read_string_to_mal_string(`"${e.message}"`)]
+                  )
+                );
+              }
             }
 
             case DO: {
@@ -246,10 +278,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
             }
             case IF: {
               const ifListValues = ast.value as unknown as IfList;
-              const evaluatedCondition = EVAL(
-                eval_ast(ifListValues[1], env),
-                env
-              );
+              const evaluatedCondition = EVAL(ifListValues[1], env);
               if (![NIL, FALSE].includes(evaluatedCondition.type)) {
                 //TCO magic
                 ast = ifListValues[2]; //EVAL(ifListValues[2], env);
@@ -284,6 +313,8 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               if (firstElement.type === FUNCTION) {
                 // case for (+ 1 2)
                 return firstElement.value(...evaluatedList.value.slice(1));
+                // ast = firstElement.value(...evaluatedList.value.slice(1));
+                // continue;
               } else if (firstElement.type === TCO_FUNCTION) {
                 ast = firstElement.ast;
                 env = new Env(
@@ -303,7 +334,7 @@ const EVAL = (ast: MalType, env: Env): MalType => {
 };
 
 const PRINT = (_: MalType) => {
-  console.log(pr_str(_, true));
+  return pr_str(_, true);
 };
 
 const REPL_ENV = new Env(null);
@@ -413,25 +444,29 @@ REPL_ENV.set(
   malFunction((value: MalType) => EVAL(value, REPL_ENV))
 );
 
+REPL_ENV.set("*host-language*", malString("ts2"));
+
+REPL_ENV.set("*ARGV*", malList([]));
 // REPL_ENV.set(
 //   "quote",
 //   malFunction((value: MalType) => value)
 // );
 
 const rep = (_: string) => {
-  PRINT(EVAL(READ(_), REPL_ENV));
+  return PRINT(EVAL(READ(_), REPL_ENV));
 };
 
 const start = async () => {
   while (true) {
     try {
-      rep(await rl.question("input> "));
+      console.log(rep(await rl.question("input> ")));
     } catch (e: any) {
       console.log(e.message);
       await start();
     }
   }
 };
+
 rep("(def! not (fn* (a) (if a false true)))");
 rep(
   `(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))`
@@ -442,11 +477,29 @@ rep(
 
 if (process.argv.length > 2) {
   (global as any)["run_other_file"] = true;
-  const paths = process.argv.slice(2);
-  for (const path of paths) {
+  const path = process.argv[2];
+  const argv = process.argv.slice(3);
+  REPL_ENV.set(
+    "*ARGV*",
+    malList(
+      argv.map((_) => {
+        const n = parseInt(_);
+        if (Number.isNaN(n)) {
+          return malString(_);
+        }
+        return malNumber(n);
+      })
+    )
+  );
+  try {
     rep(`(load-file "${path}")`);
+
+    process.exit(0);
+  } catch (e) {
+    e;
+    process.exit(0);
   }
-  process.exit(0);
 } else {
+  rep(`(println (str "Mal [" *host-language* "]"))`);
   start();
 }

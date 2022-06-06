@@ -1,5 +1,5 @@
-import { pr_str } from "./printer.js";
-import { read_str } from "./reader.js";
+import { pr_str } from "./printer.mjs";
+import { read_str } from "./reader.mjs";
 import {
   DEF,
   DefList,
@@ -38,11 +38,11 @@ import {
   MalTCOFunction,
   VECTOR,
   TCO_FUNCTION,
-} from "./types.js";
-import { Env } from "./env.js";
-import core from "./core.js";
-import { MalError } from "./mal_error.js";
-import { rl } from "./readline.js";
+} from "./types.mjs";
+import { Env } from "./env.mjs";
+import core from "./core.mjs";
+import { MalError } from "./mal_error.mjs";
+import { rl } from "./readline.mjs";
 
 const READ = (_: string): MalType => {
   return read_str(_);

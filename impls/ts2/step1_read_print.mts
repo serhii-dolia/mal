@@ -1,7 +1,7 @@
-import { pr_str } from "./printer.js";
-import { read_str } from "./reader.js";
-import { rl } from "./readline.js";
-import { MalType } from "./types.js";
+import { pr_str } from "./printer.mjs";
+import { read_str } from "./reader.mjs";
+import { rl } from "./readline.mjs";
+import { MalType } from "./types.mjs";
 
 const READ = (_: string): MalType => {
   return read_str(_);

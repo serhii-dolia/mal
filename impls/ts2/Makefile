@@ -5,13 +5,13 @@ all: ts
 node_modules:
 	npm install
 
-step%.js: node_modules step%.ts
+step%.mjs: node_modules step%.mts
 	./node_modules/.bin/tsc -p ./
 
 
 .PHONY: ts clean
 
-ts: $(foreach s,$(STEPS),$(s).js)
+ts: $(foreach s,$(STEPS),$(s).mjs)
 
 clean:
-	rm -f *.js *.js.map
+	rm -f *.js *.js.map *.mjs *.mjs.map
