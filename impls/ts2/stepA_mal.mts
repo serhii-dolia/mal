@@ -325,102 +325,6 @@ for (const [key, value] of core) {
   REPL_ENV.set(key, value);
 }
 
-// REPL_ENV.set(
-//   DEF,
-//   malFunction((ast: MalType) => {
-//     const [, varName, varValue] = ast.value as DefList;
-//     const evaluatedValue = EVAL(varValue, REPL_ENV);
-//     REPL_ENV.set(varName.value, evaluatedValue);
-//     return evaluatedValue;
-//   })
-// );
-
-// REPL_ENV.set(
-//   LET,
-//   malFunction(((ast: MalList) => {
-//     const letEnv = new Env(REPL_ENV);
-//     const bindingList = ast.value[1] as MalList;
-//     const expressionToEvaluate = ast.value[2] as MalType;
-//     if (bindingList.value.length % 2 === 1) {
-//       throw new MalError("EOF");
-//     }
-//     for (let i = 0; i < bindingList.value.length; i += 2) {
-//       const key = bindingList.value[i];
-//       const value = bindingList.value[i + 1];
-//       if (key.type !== SYMBOL) {
-//         throw new MalError("Must be symbol for binding");
-//       }
-//       letEnv.set(key.value, EVAL(value, letEnv));
-//     }
-//     return EVAL(expressionToEvaluate, letEnv);
-//   }) as MalFunctionPrimitive)
-// );
-
-// REPL_ENV.set(
-//   DO,
-//   malFunction((ast: MalType) => {
-//     const doListValues = ast.value as unknown as DoList;
-//     const evaluatedList = doListValues
-//       .slice(1)
-//       .map<MalType>((el) => EVAL(el, REPL_ENV));
-//     return evaluatedList[evaluatedList.length - 1];
-//   })
-// );
-
-// REPL_ENV.set(
-//   IF,
-//   malFunction((ast: MalType) => {
-//     const ifListValues = ast.value as unknown as IfList;
-//     const evaluatedCondition = EVAL(
-//       eval_ast(ifListValues[1], REPL_ENV),
-//       REPL_ENV
-//     );
-//     if (![NIL, FALSE].includes(evaluatedCondition.type)) {
-//       //TCO magic
-//       return EVAL(ifListValues[2], REPL_ENV);
-//     } else {
-//       if (ifListValues[3]) {
-//         return EVAL(ifListValues[3], REPL_ENV);
-//       } else {
-//         return malNil();
-//       }
-//     }
-//   })
-// );
-
-// REPL_ENV.set(
-//   FN,
-//   malFunction((ast: MalType) => {
-//     const fnList = ast.value as FnList;
-//     const args: MalList = fnList[1] as MalList;
-//     //TCO magic
-//     return tcoFunction(
-//       fnList[2],
-//       fnList[1],
-//       REPL_ENV,
-//       malFunction((..._: MalType[]) =>
-//         EVAL(fnList[2], new Env(REPL_ENV, args.value as MalSymbol[], _))
-//       )
-//     );
-//   })
-// );
-
-// REPL_ENV.set(
-//   DEF_MACRO,
-//   malFunction((ast: MalType) => {
-//     const [, varName, varValue] = ast.value as DefList;
-//     const evaluatedValue = EVAL(varValue, REPL_ENV) as MalTCOFunction;
-//     evaluatedValue.isMacro = true;
-//     REPL_ENV.set(varName.value, evaluatedValue);
-//     return evaluatedValue;
-//   })
-// );
-
-// REPL_ENV.set(
-//   "macroexpand",
-//   malFunction((ast: MalType) => macroexpand(ast, REPL_ENV))
-// );
-
 REPL_ENV.set(
   "eval",
   malFunction((value: MalType) => EVAL(value, REPL_ENV))
@@ -429,10 +333,6 @@ REPL_ENV.set(
 REPL_ENV.set("*host-language*", malString("ts2"));
 
 REPL_ENV.set("*ARGV*", malList([]));
-// REPL_ENV.set(
-//   "quote",
-//   malFunction((value: MalType) => value)
-// );
 
 const rep = (_: string) => {
   return PRINT(EVAL(READ(_), REPL_ENV));

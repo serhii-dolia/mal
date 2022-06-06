@@ -11,7 +11,6 @@ import {
   malList,
   MalList,
   malNil,
-  MalNil,
   malNumber,
   MalString,
   malString,
@@ -54,19 +53,7 @@ class Reader {
   }
 }
 
-export const read_str = (_: string) => {
-  // let leftParensCount = 0;
-  // let rightParensCount = 0;
-  // for (let i = 0; i < _.length; i++) {
-  //   if (_[i] === "(") leftParensCount++;
-  //   if (_[i] === ")") rightParensCount++;
-  // }
-  // if (leftParensCount !== rightParensCount) {
-  //   throw new MalError("Parents are not matching!");
-  // }
-  const x = read_form(new Reader(tokenize(_)));
-  return x;
-};
+export const read_str = (_: string) => read_form(new Reader(tokenize(_)));
 
 const tokenize = (_: string) => {
   return _.split(
@@ -100,12 +87,6 @@ const read_form = (
       return read_atom(_);
   }
 };
-
-/**
- *
- * @param _ Add a reader-macro that expands the token "^" to return a new list that contains the symbol "with-meta" and the result of reading the next next form (2nd argument) (read_form) and the next form (1st argument) in that order (metadata comes first with the ^ macro and the function second).
- * @returns
- */
 
 const read_with_meta = (_: Reader): MalList => {
   _.next();

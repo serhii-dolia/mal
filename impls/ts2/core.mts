@@ -35,7 +35,6 @@ import {
   malNil,
   malNumber,
   MalNumber,
-  MalSingleType,
   malString,
   MalString,
   malSymbol,
@@ -58,7 +57,6 @@ import {
 import { MalError } from "./mal_error.mjs";
 
 import * as fs from "node:fs";
-import { rl } from "./readline.mjs";
 
 const getCheckFunction = (type: ValueType[]): MalFunction =>
   malFunction((_: MalType) => {
