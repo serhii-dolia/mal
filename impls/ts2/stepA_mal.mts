@@ -1,9 +1,5 @@
 import { pr_str } from "./printer.mjs";
-import {
-  determine_atom,
-  read_str,
-  read_string_to_mal_string,
-} from "./reader.mjs";
+import { read_str, read_string_to_mal_string } from "./reader.mjs";
 import {
   DEF,
   DefList,
@@ -30,8 +26,6 @@ import {
   tcoFunction,
   VECTOR,
   TCO_FUNCTION,
-  MalFunction,
-  MalFunctionPrimitive,
   malSymbol,
   DEF_MACRO,
   MalTCOFunction,
@@ -43,7 +37,6 @@ import {
   TryList,
   malString,
   CatchList,
-  malBoolean,
   malNumber,
 } from "./types.mjs";
 import { Env } from "./env.mjs";
@@ -79,16 +72,6 @@ const quasiquote = (_: MalType) => {
       return ile(_, 1);
     } else {
       return processNormalList(_);
-      // let list = malList([]);
-      // for (let i = _.value.length - 1; i >= 0; i--) {
-      //   const elt = ile(_, i);
-      //   if (elt.type === LIST && ile(elt, 0).value === "splice-unquote") {
-      //     list = malList([malSymbol("concat"), ile(elt, 1), list]);
-      //   } else {
-      //     list = malList([malSymbol("cons"), qq(elt), list]);
-      //   }
-      // }
-      // return list;
     }
   } else if (_.type === HASHMAP || _.type === SYMBOL) {
     return malList([malSymbol("quote"), _]);
@@ -115,16 +98,15 @@ const is_macro_call = (ast: MalType, env: Env): ast is MalList => {
 };
 
 const macroexpand = (ast: MalType, env: Env): MalType => {
-  let x = ast;
-  while (is_macro_call(x, env)) {
-    const firstValue = x.value[0];
+  while (is_macro_call(ast, env)) {
+    const firstValue = ast.value[0];
     if (!firstValue || firstValue.type !== SYMBOL) {
       throw new MalError("macro problem");
     }
     const macroFunction = env.get(firstValue.value) as MalTCOFunction;
-    x = macroFunction.value.value(...x.value.slice(1));
+    ast = macroFunction.value.value(...ast.value.slice(1));
   }
-  return x;
+  return ast;
 };
 
 function eval_ast(ast: MalList, replEnv: Env): MalList;
