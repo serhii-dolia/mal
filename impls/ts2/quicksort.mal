@@ -1,0 +1,26 @@
+(def! or (fn* (& bools)
+              (cond
+                (empty? bools) false
+                (true? (first bools)) true
+                "else" (apply or (rest bools)))))
+
+(def! qsort (fn* (L)
+                 (cond
+                   (empty? L) '()
+                   "else" (concat
+                           (qsort (list< (first L) (rest L)))
+                           (cons (first L) '())
+                           (qsort (list>= (first L) (rest L)))))))
+
+
+(def! list< (fn* (a b)
+                 (cond
+                   (or (nil a) (empty? b)) '()
+                   (< a (first b)) (list< a (rest b))
+                   "else" (cons (first b) (list< a (rest b))))))
+
+(def! list>= (fn* (a b)
+                  (cond
+                    (or (nil? a) (empty? b)) '()
+                    (>= a (first b)) (list>= a (rest b))
+                    "else" (cons (first b) (list>= a (rest b))))))
