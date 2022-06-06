@@ -13,21 +13,14 @@ import {
   IF,
   IfList,
   LET,
-  //   evaluatableList,
-  //   EvaluatableList,
   LIST,
   MalSingleType,
-  MalFunction,
   malFunction,
-  MalFunctionPrimitive,
   malHashMap,
   MalHashMap,
-  MalKeyword,
   MalList,
   malList,
   malNil,
-  MalNumber,
-  malNumber,
   MalSymbol,
   MalType,
   malVector,
@@ -35,7 +28,6 @@ import {
   NIL,
   SYMBOL,
   tcoFunction,
-  MalTCOFunction,
   VECTOR,
   TCO_FUNCTION,
 } from "./types.mjs";
@@ -51,9 +43,6 @@ const READ = (_: string): MalType => {
 const EVAL = (ast: MalType, env: Env): MalType => {
   while (true) {
     switch (ast.type) {
-      // case FUNCTION:
-      // case TCO_FUNCTION:
-      //   return ast;
       case VECTOR: {
         if (ast.value.length === 0) {
           return ast;
@@ -99,7 +88,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               env = letEnv;
               ast = expressionToEvaluate;
               continue;
-              //return EVAL(expressionToEvaluate, letEnv);
             }
             case DO: {
               const doListValues = ast.value as unknown as DoList;
@@ -109,7 +97,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               // TCO magic
               ast = doListValues[doListValues.length - 1];
               continue;
-              // return evaluatedList.value[evaluatedList.value.length - 1];
             }
             case IF: {
               const ifListValues = ast.value as unknown as IfList;
@@ -119,17 +106,12 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               );
               if (![NIL, FALSE].includes(evaluatedCondition.type)) {
                 //TCO magic
-                ast = ifListValues[2]; //EVAL(ifListValues[2], env);
+                ast = ifListValues[2];
                 continue;
               } else {
                 // TCO magic
                 ast = ifListValues[3] || malNil();
                 continue;
-                // if (ifListValues[3]) {
-                //   return EVAL(ifListValues[3], env);
-                // } else {
-                //   return malNil();
-                // }
               }
             }
             case FN:
@@ -144,9 +126,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
                   EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
                 )
               );
-            // return malFunction((..._: MalType[]) =>
-            //   EVAL(fnList[2], new Env(env, args.value as MalSymbol[], _))
-            // );
 
             default:
               const evaluatedList = eval_ast(ast, env);

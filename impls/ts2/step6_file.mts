@@ -45,9 +45,6 @@ const READ = (_: string): MalType => {
 const EVAL = (ast: MalType, env: Env): MalType => {
   while (true) {
     switch (ast.type) {
-      // case FUNCTION:
-      // case TCO_FUNCTION:
-      //   return ast;
       case VECTOR: {
         if (ast.value.length === 0) {
           return ast;
@@ -93,7 +90,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               env = letEnv;
               ast = expressionToEvaluate;
               continue;
-              //return EVAL(expressionToEvaluate, letEnv);
             }
             case DO: {
               const doListValues = ast.value as unknown as DoList;
@@ -101,7 +97,6 @@ const EVAL = (ast: MalType, env: Env): MalType => {
               // TCO magic
               ast = doListValues[doListValues.length - 1];
               continue;
-              // return evaluatedList.value[evaluatedList.value.length - 1];
             }
             case IF: {
               const ifListValues = ast.value as unknown as IfList;
